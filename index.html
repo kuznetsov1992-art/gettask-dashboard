@@ -1,0 +1,2984 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetTask Analytics Dashboard</title>
+    <link rel="icon" type="image/webp" href="https://optim.tildacdn.com/tild3536-6630-4437-a435-303364646433/-/resize/32x/-/format/webp/1.png.webp">
+    <link rel="apple-touch-icon" href="https://optim.tildacdn.com/tild3536-6630-4437-a435-303364646433/-/resize/180x/-/format/webp/1.png.webp">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================
+           DESIGN SYSTEM - LIGHT THEME (DEFAULT)
+           ======================================== */
+        :root {
+            /* Background Colors - Light */
+            --bg-deep: #f8fafc;
+            --bg-primary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-elevated: #f1f5f9;
+            --bg-input: #f8fafc;
+
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-disabled: #94a3b8;
+
+            /* Semantic Colors */
+            --accent-cyan: #0891b2;
+            --accent-cyan-glow: rgba(8, 145, 178, 0.2);
+            --accent-emerald: #059669;
+            --accent-emerald-glow: rgba(5, 150, 105, 0.15);
+            --accent-rose: #e11d48;
+            --accent-rose-glow: rgba(225, 29, 72, 0.15);
+            --accent-amber: #d97706;
+            --accent-amber-glow: rgba(217, 119, 6, 0.15);
+            --accent-violet: #7c3aed;
+            --accent-violet-glow: rgba(124, 58, 237, 0.15);
+
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #0891b2 0%, #7c3aed 50%, #e11d48 100%);
+            --gradient-success: linear-gradient(135deg, #059669 0%, #34d399 100%);
+            --gradient-danger: linear-gradient(135deg, #e11d48 0%, #fb7185 100%);
+            --gradient-warning: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+            --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 1) 100%);
+            --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(8, 145, 178, 0.08) 0%, transparent 60%);
+
+            /* Borders */
+            --border-subtle: #e2e8f0;
+            --border-accent: rgba(8, 145, 178, 0.3);
+            --border-success: rgba(5, 150, 105, 0.3);
+            --border-danger: rgba(225, 29, 72, 0.3);
+            --border-warning: rgba(217, 119, 6, 0.3);
+
+            /* Shadows */
+            --shadow-glow: 0 0 60px -12px rgba(8, 145, 178, 0.15);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+            /* Chart Colors */
+            --chart-bg-plan: #e2e8f0;
+            --chart-border-plan: #cbd5e1;
+            --chart-grid: #e2e8f0;
+            --chart-text: #64748b;
+            --chart-text-secondary: #94a3b8;
+            --chart-tooltip-bg: #1e293b;
+            --chart-tooltip-text: #f8fafc;
+            --chart-tooltip-border: #334155;
+            --chart-point-border: #ffffff;
+            --funnel-bar-track: #cbd5e1;
+            --funnel-bar-plan: #94a3b8;
+            --funnel-stage-hover: #e2e8f0;
+            --scrollbar-thumb: #cbd5e1;
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ========================================
+           DARK THEME
+           ======================================== */
+        [data-theme="dark"] {
+            --bg-deep: #030712;
+            --bg-primary: #0a0f1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2332;
+            --bg-elevated: #1f2937;
+            --bg-input: #0d1117;
+
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --text-disabled: #4b5563;
+
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.4);
+            --accent-emerald: #10b981;
+            --accent-emerald-glow: rgba(16, 185, 129, 0.3);
+            --accent-rose: #f43f5e;
+            --accent-rose-glow: rgba(244, 63, 94, 0.3);
+            --accent-amber: #f59e0b;
+            --accent-amber-glow: rgba(245, 158, 11, 0.3);
+            --accent-violet: #8b5cf6;
+            --accent-violet-glow: rgba(139, 92, 246, 0.3);
+
+            --gradient-primary: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #f43f5e 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --gradient-danger: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --gradient-card: linear-gradient(145deg, rgba(17, 24, 39, 0.9) 0%, rgba(10, 15, 26, 0.95) 100%);
+            --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 60%);
+
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-accent: rgba(6, 182, 212, 0.3);
+            --border-success: rgba(16, 185, 129, 0.3);
+            --border-danger: rgba(244, 63, 94, 0.3);
+            --border-warning: rgba(245, 158, 11, 0.3);
+
+            --shadow-glow: 0 0 60px -12px rgba(6, 182, 212, 0.25);
+            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+            --chart-bg-plan: rgba(100, 116, 139, 0.2);
+            --chart-border-plan: rgba(100, 116, 139, 0.4);
+            --chart-grid: rgba(255, 255, 255, 0.03);
+            --chart-text: #9ca3af;
+            --chart-text-secondary: #6b7280;
+            --chart-tooltip-bg: #1f2937;
+            --chart-tooltip-text: #f9fafb;
+            --chart-tooltip-border: #374151;
+            --chart-point-border: #030712;
+            --funnel-bar-track: rgba(255, 255, 255, 0.05);
+            --funnel-bar-plan: rgba(100, 116, 139, 0.4);
+            --funnel-stage-hover: rgba(255, 255, 255, 0.04);
+            --scrollbar-thumb: var(--bg-elevated);
+        }
+
+        /* ========================================
+           RESET & BASE
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Background gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            background:
+                var(--gradient-glow),
+                radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(225, 29, 72, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] body::before {
+            background:
+                var(--gradient-glow),
+                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 50%);
+        }
+
+        /* Noise texture for dark theme */
+        [data-theme="dark"] body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-xl);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-md);
+        }
+
+        @media (max-width: 1200px) {
+            .grid-5 { grid-template-columns: repeat(3, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .grid-5, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+            .container { padding: var(--space-md); }
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--border-subtle);
+            animation: fadeSlideDown 0.8s var(--transition-base);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .logo {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-card);
+        }
+
+        .theme-toggle-icon {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-toggle-icon {
+            transform: rotate(20deg);
+        }
+
+        .period-selector {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            padding: 12px 44px 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-base);
+            appearance: none;
+            box-shadow: var(--shadow-sm);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        [data-theme="dark"] .period-selector {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
+        .period-selector:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-card);
+        }
+
+        .period-selector:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: 8px 16px;
+            background: rgba(5, 150, 105, 0.1);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-emerald);
+            font-weight: 500;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* ========================================
+           HEALTH SCORE
+           ======================================== */
+        .health-score-section {
+            margin-bottom: var(--space-xl);
+            animation: fadeSlideUp 0.6s var(--transition-base);
+        }
+
+        .health-score-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2xl);
+            flex-wrap: wrap;
+            transition: var(--transition-base);
+        }
+
+        .health-gauge {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+        }
+
+        .health-gauge svg {
+            transform: rotate(-90deg);
+        }
+
+        .health-gauge-bg {
+            fill: none;
+            stroke: var(--bg-elevated);
+            stroke-width: 12;
+        }
+
+        .health-gauge-fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s var(--transition-base), stroke 0.5s ease;
+        }
+
+        .health-gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .health-gauge-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .health-gauge-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .health-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+
+        .health-status-icon {
+            font-size: 24px;
+        }
+
+        .health-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .health-metrics {
+            display: flex;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .health-metric {
+            text-align: center;
+            padding: var(--space-md);
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+            min-width: 100px;
+            transition: var(--transition-base);
+        }
+
+        .health-metric-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .health-metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* ========================================
+           KPI CARDS
+           ======================================== */
+        .kpi-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .kpi-card {
+            position: relative;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-card);
+            transition: var(--transition-base);
+            overflow: hidden;
+            animation: fadeSlideUp 0.6s var(--transition-base) backwards;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+        .kpi-card:nth-child(2) { animation-delay: 0.15s; }
+        .kpi-card:nth-child(3) { animation-delay: 0.2s; }
+        .kpi-card:nth-child(4) { animation-delay: 0.25s; }
+        .kpi-card:nth-child(5) { animation-delay: 0.3s; }
+
+        .kpi-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--border-accent);
+            box-shadow: var(--shadow-glow), var(--shadow-card);
+        }
+
+        .kpi-card:hover::before {
+            opacity: 1;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .kpi-icon.cyan { background: rgba(8, 145, 178, 0.1); }
+        .kpi-icon.violet { background: rgba(124, 58, 237, 0.1); }
+        .kpi-icon.amber { background: rgba(217, 119, 6, 0.1); }
+        .kpi-icon.emerald { background: rgba(5, 150, 105, 0.1); }
+        .kpi-icon.rose { background: rgba(225, 29, 72, 0.1); }
+
+        [data-theme="dark"] .kpi-icon.cyan { background: rgba(6, 182, 212, 0.15); }
+        [data-theme="dark"] .kpi-icon.violet { background: rgba(139, 92, 246, 0.15); }
+        [data-theme="dark"] .kpi-icon.amber { background: rgba(245, 158, 11, 0.15); }
+        [data-theme="dark"] .kpi-icon.emerald { background: rgba(16, 185, 129, 0.15); }
+        [data-theme="dark"] .kpi-icon.rose { background: rgba(244, 63, 94, 0.15); }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .kpi-trend.up {
+            color: var(--accent-emerald);
+            background: rgba(5, 150, 105, 0.1);
+        }
+
+        .kpi-trend.down {
+            color: var(--accent-rose);
+            background: rgba(225, 29, 72, 0.1);
+        }
+
+        .kpi-trend.neutral {
+            color: var(--accent-amber);
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        [data-theme="dark"] .kpi-trend.up { background: rgba(16, 185, 129, 0.1); }
+        [data-theme="dark"] .kpi-trend.down { background: rgba(244, 63, 94, 0.1); }
+        [data-theme="dark"] .kpi-trend.neutral { background: rgba(245, 158, 11, 0.1); }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .kpi-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            color: var(--text-primary);
+        }
+
+        .kpi-plan {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-md);
+        }
+
+        .kpi-progress {
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .kpi-progress-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s var(--transition-base);
+            position: relative;
+        }
+
+        .kpi-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .kpi-progress-bar.success { background: var(--gradient-success); }
+        .kpi-progress-bar.warning { background: var(--gradient-warning); }
+        .kpi-progress-bar.danger { background: var(--gradient-danger); }
+
+        /* ========================================
+           ALERTS SECTION
+           ======================================== */
+        .alerts-section {
+            margin-bottom: var(--space-xl);
+            animation: fadeSlideUp 0.7s var(--transition-base) backwards;
+            animation-delay: 0.35s;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .alert-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alert-badge.critical {
+            background: rgba(225, 29, 72, 0.1);
+            color: var(--accent-rose);
+        }
+
+        .alert-badge.success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--accent-emerald);
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .alert-card {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid;
+            transition: var(--transition-base);
+        }
+
+        .alert-card:hover {
+            transform: translateX(4px);
+        }
+
+        .alert-card.critical {
+            background: rgba(225, 29, 72, 0.05);
+            border-color: rgba(225, 29, 72, 0.2);
+        }
+
+        .alert-card.warning {
+            background: rgba(217, 119, 6, 0.05);
+            border-color: rgba(217, 119, 6, 0.2);
+        }
+
+        .alert-card.success {
+            background: rgba(5, 150, 105, 0.05);
+            border-color: rgba(5, 150, 105, 0.2);
+        }
+
+        .alert-card.info {
+            background: rgba(8, 145, 178, 0.05);
+            border-color: rgba(8, 145, 178, 0.2);
+        }
+
+        [data-theme="dark"] .alert-card.critical { background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2); }
+        [data-theme="dark"] .alert-card.warning { background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2); }
+        [data-theme="dark"] .alert-card.success { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); }
+        [data-theme="dark"] .alert-card.info { background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2); }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-card.critical .alert-icon { background: rgba(225, 29, 72, 0.1); }
+        .alert-card.warning .alert-icon { background: rgba(217, 119, 6, 0.1); }
+        .alert-card.success .alert-icon { background: rgba(5, 150, 105, 0.1); }
+        .alert-card.info .alert-icon { background: rgba(8, 145, 178, 0.1); }
+
+        [data-theme="dark"] .alert-card.critical .alert-icon { background: rgba(244, 63, 94, 0.15); }
+        [data-theme="dark"] .alert-card.warning .alert-icon { background: rgba(245, 158, 11, 0.15); }
+        [data-theme="dark"] .alert-card.success .alert-icon { background: rgba(16, 185, 129, 0.15); }
+        [data-theme="dark"] .alert-card.info .alert-icon { background: rgba(6, 182, 212, 0.15); }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .alert-card.critical .alert-title { color: var(--accent-rose); }
+        .alert-card.warning .alert-title { color: var(--accent-amber); }
+        .alert-card.success .alert-title { color: var(--accent-emerald); }
+        .alert-card.info .alert-title { color: var(--accent-cyan); }
+
+        .alert-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .alert-action {
+            font-size: 12px;
+            color: var(--accent-cyan);
+            margin-top: var(--space-sm);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ========================================
+           CHARTS SECTION
+           ======================================== */
+        .charts-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-card);
+            animation: fadeSlideUp 0.7s var(--transition-base) backwards;
+            animation-delay: 0.4s;
+            transition: var(--transition-base);
+        }
+
+        .chart-card:hover {
+            border-color: var(--border-accent);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* ========================================
+           FUNNEL SECTION
+           ======================================== */
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .funnel-stage {
+            display: grid;
+            grid-template-columns: 140px 1fr auto auto;
+            align-items: center;
+            gap: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+            transition: var(--transition-base);
+        }
+
+        .funnel-stage:hover {
+            background: var(--funnel-stage-hover);
+        }
+
+        .funnel-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .funnel-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .funnel-bar-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .funnel-bar-type {
+            font-size: 10px;
+            color: var(--text-muted);
+            width: 35px;
+            flex-shrink: 0;
+        }
+
+        .funnel-bar-track {
+            flex: 1;
+            height: 10px;
+            background: var(--funnel-bar-track);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .funnel-bar {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s var(--transition-base);
+        }
+
+        .funnel-bar.plan {
+            background: var(--funnel-bar-plan);
+        }
+
+        .funnel-bar.fact {
+            background: var(--gradient-primary);
+        }
+
+        .funnel-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .funnel-conversion {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: rgba(124, 58, 237, 0.1);
+            border-radius: var(--radius-sm);
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--accent-violet);
+            min-width: 70px;
+            justify-content: center;
+        }
+
+        .funnel-conversion.bottleneck {
+            background: rgba(225, 29, 72, 0.1);
+            color: var(--accent-rose);
+            animation: pulseRed 2s infinite;
+        }
+
+        [data-theme="dark"] .funnel-conversion.bottleneck {
+            background: rgba(244, 63, 94, 0.15);
+        }
+
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(225, 29, 72, 0); }
+        }
+
+        /* ========================================
+           UNIT ECONOMICS SECTION
+           ======================================== */
+        .unit-economics-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .unit-economics-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-card);
+            animation: fadeSlideUp 0.8s var(--transition-base) backwards;
+            animation-delay: 0.5s;
+        }
+
+        .unit-economics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+
+        @media (max-width: 900px) {
+            .unit-economics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .unit-metric {
+            text-align: center;
+            padding: var(--space-lg);
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+            transition: var(--transition-base);
+        }
+
+        .unit-metric:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .unit-metric-icon {
+            font-size: 28px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .unit-metric-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .unit-metric-value.success { color: var(--accent-emerald); }
+        .unit-metric-value.warning { color: var(--accent-amber); }
+        .unit-metric-value.danger { color: var(--accent-rose); }
+        .unit-metric-value.primary { color: var(--accent-cyan); }
+
+        .unit-metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .unit-metric-sublabel {
+            font-size: 11px;
+            color: var(--text-disabled);
+            margin-top: var(--space-xs);
+        }
+
+        .unit-formula {
+            margin-top: var(--space-lg);
+            padding: var(--space-md);
+            background: rgba(8, 145, 178, 0.05);
+            border: 1px solid rgba(8, 145, 178, 0.1);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        [data-theme="dark"] .unit-formula {
+            background: rgba(6, 182, 212, 0.05);
+            border-color: rgba(6, 182, 212, 0.1);
+        }
+
+        .unit-formula-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ========================================
+           CHANNELS SECTION
+           ======================================== */
+        .channels-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .channels-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .channels-table th,
+        .channels-table td {
+            padding: var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .channels-table th {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .channels-table tr:hover td {
+            background: var(--bg-elevated);
+        }
+
+        .channel-name {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-weight: 500;
+        }
+
+        .channel-icon {
+            font-size: 18px;
+        }
+
+        .channel-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+        }
+
+        .channel-value.positive {
+            color: var(--accent-emerald);
+        }
+
+        .channel-value.negative {
+            color: var(--accent-rose);
+        }
+
+        .channel-empty {
+            color: var(--text-muted);
+        }
+
+        .channel-progress {
+            min-width: 120px;
+        }
+
+        .channel-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            gap: var(--space-sm);
+        }
+
+        .channel-progress-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .channel-progress-pct {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .channel-progress-pct.success { color: var(--accent-emerald); }
+        .channel-progress-pct.warning { color: var(--accent-amber); }
+        .channel-progress-pct.danger { color: var(--accent-rose); }
+        .channel-progress-pct.neutral { color: var(--text-muted); }
+
+        .channel-progress-bar {
+            height: 6px;
+            background: var(--border-subtle);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .channel-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .channel-progress-fill.success { background: var(--accent-emerald); }
+        .channel-progress-fill.warning { background: var(--accent-amber); }
+        .channel-progress-fill.danger { background: var(--accent-rose); }
+        .channel-progress-fill.neutral { background: var(--text-muted); }
+
+        /* Expandable Row Styles */
+        .channel-row {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .channel-row:hover {
+            background: var(--bg-elevated);
+        }
+
+        .channel-row.expanded {
+            background: var(--bg-elevated);
+        }
+
+        .channel-expand-icon {
+            display: inline-flex;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            border-radius: 4px;
+            background: var(--bg-card);
+            font-size: 12px;
+            transition: transform 0.3s ease, background 0.2s ease;
+        }
+
+        .channel-row.expanded .channel-expand-icon {
+            transform: rotate(90deg);
+            background: var(--accent-cyan);
+            color: white;
+        }
+
+        .channel-details-row {
+            display: none;
+        }
+
+        .channel-details-row.visible {
+            display: table-row;
+        }
+
+        .channel-details-cell {
+            padding: 0 !important;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .channel-details-content {
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: 0 0 8px 8px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .channel-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .channel-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .channel-detail-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .channel-detail-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .channel-detail-value.positive { color: var(--accent-emerald); }
+        .channel-detail-value.warning { color: var(--accent-amber); }
+        .channel-detail-value.negative { color: var(--accent-rose); }
+
+        .channel-conversions-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: var(--space-md);
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .roi-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .roi-badge.positive {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--accent-emerald);
+        }
+
+        .roi-badge.negative {
+            background: rgba(225, 29, 72, 0.1);
+            color: var(--accent-rose);
+        }
+
+        .roi-badge.neutral {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--accent-amber);
+        }
+
+        [data-theme="dark"] .roi-badge.positive { background: rgba(16, 185, 129, 0.1); }
+        [data-theme="dark"] .roi-badge.negative { background: rgba(244, 63, 94, 0.1); }
+        [data-theme="dark"] .roi-badge.neutral { background: rgba(245, 158, 11, 0.1); }
+
+        /* ========================================
+           TREND SECTION
+           ======================================== */
+        .trend-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .trend-chart-container {
+            height: 350px;
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+        .footer {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border-subtle);
+            animation: fadeIn 1s ease backwards;
+            animation-delay: 0.8s;
+        }
+
+        .footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .footer a:hover {
+            color: var(--accent-violet);
+        }
+
+        /* ========================================
+           LOADING INDICATOR
+           ======================================== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-base);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-subtle);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: var(--space-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-card);
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .data-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .data-status.live {
+            color: var(--accent-emerald);
+        }
+
+        .data-status.cached {
+            color: var(--accent-amber);
+        }
+
+        /* ========================================
+           ANIMATIONS
+           ======================================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ========================================
+           SCROLLBAR
+           ======================================== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-elevated);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+        /* ========================================
+           RESPONSIVE FUNNEL
+           ======================================== */
+        @media (max-width: 768px) {
+            .funnel-stage {
+                grid-template-columns: 1fr;
+                gap: var(--space-sm);
+            }
+
+            .funnel-value, .funnel-conversion {
+                justify-self: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Загрузка данных из Google Sheets...</div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">
+                <div class="logo">
+                    <img src="https://optim.tildacdn.com/tild3536-6630-4437-a435-303364646433/-/resize/160x/-/format/webp/1.png.webp" alt="GetTask">
+                </div>
+                <div>
+                    <h1 class="header-title">GetTask Analytics</h1>
+                    <div class="header-subtitle">Дашбоард по продажам</div>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="themeIcon">☀️</span>
+                    <span id="themeLabel">Светлая</span>
+                </button>
+                <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                    <span>🔄</span>
+                    <span>Обновить</span>
+                </button>
+                <div class="data-status" id="dataStatus">
+                    <span class="live-dot"></span>
+                    <span id="dataStatusText">Загрузка...</span>
+                </div>
+                <select class="period-selector" id="periodSelector">
+                    <option value="2026-1">Январь 2026</option>
+                    <option value="2025-12">Декабрь 2025</option>
+                    <option value="2025-11">Ноябрь 2025</option>
+                    <option value="2025-10">Октябрь 2025</option>
+                    <option value="2025-9">Сентябрь 2025</option>
+                    <option value="2025-8">Август 2025</option>
+                    <option value="2025-7">Июль 2025</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Health Score Section -->
+        <section class="health-score-section">
+            <div class="health-score-card" id="healthScoreCard">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- KPI Cards -->
+        <section class="kpi-section">
+            <div class="grid-5" id="kpiGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Alerts Section -->
+        <section class="alerts-section">
+            <div class="section-header">
+                <h2 class="section-title">Системные оповещения</h2>
+                <span class="alert-badge critical" id="alertBadge">0</span>
+            </div>
+            <div class="alerts-grid" id="alertsGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="grid-2">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Воронка продаж</h3>
+                    </div>
+                    <div class="funnel-container" id="funnelContainer">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">План vs Факт</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="planFactChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Unit Economics Section -->
+        <section class="unit-economics-section">
+            <div class="unit-economics-card">
+                <div class="section-header">
+                    <h2 class="section-title">Unit Economics</h2>
+                </div>
+                <div class="unit-economics-grid" id="unitEconomicsGrid">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="unit-formula" id="unitFormula">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Channels Section -->
+        <section class="channels-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Данные по каналам</h3>
+                </div>
+                <table class="channels-table" id="channelsTable">
+                    <!-- Populated by JS -->
+                </table>
+            </div>
+        </section>
+
+        <!-- Trend Section -->
+        <section class="trend-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Динамика выручки</h3>
+                </div>
+                <div class="trend-chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>GetTask Analytics Dashboard &bull; <a href="https://gettask.pro" target="_blank">gettask.pro</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // ========================================
+        // THEME MANAGEMENT
+        // ========================================
+        function getPreferredTheme() {
+            const saved = localStorage.getItem('theme');
+            if (saved) return saved;
+            return 'light'; // Default to light theme
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeToggle(theme);
+            // Redraw charts with new theme colors
+            if (planFactChart) renderPlanFactChart();
+            if (trendChart) renderTrendChart();
+        }
+
+        function updateThemeToggle(theme) {
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (theme === 'dark') {
+                icon.textContent = '🌙';
+                label.textContent = 'Тёмная';
+            } else {
+                icon.textContent = '☀️';
+                label.textContent = 'Светлая';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+        }
+
+        // Theme will be initialized after chart variables are declared
+
+        // ========================================
+        // GOOGLE SHEETS CONFIGURATION
+        // ========================================
+        const SPREADSHEET_ID = '10BPjt5TsaJLpIrLqvyMgEeUsSV4baa4NrGullTsB7AI';
+
+        const SHEETS_CONFIG = {
+            '2026-1':  { gid: '502114286', name: 'Январь 2026' },
+            '2025-12': { gid: '843488400', name: 'Декабрь 2025' },
+            '2025-11': { gid: '948324373', name: 'Ноябрь 2025' },
+            '2025-10': { gid: '1785459730', name: 'Октябрь 2025' },
+            '2025-9':  { gid: '1563449345', name: 'Сентябрь 2025' },
+            '2025-8':  { gid: '8294097', name: 'Август 2025' },
+            '2025-7':  { gid: '859248875', name: 'Июль 2025' }
+        };
+
+        const CORS_PROXIES = [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
+        let currentProxyIndex = 0;
+
+        // Cached data as fallback
+        const CACHED_DATA = {
+            '2026-1': {
+                revenue: { plan: 158000, fact: 56970, pct: 36.1 },
+                payments: { plan: 5, fact: 3, pct: 60 },
+                avg_price: { plan: 29700, fact: 18990, pct: 63.9 },
+                cac: { plan: 30324, fact: 13554, pct: 44.7 },
+                marketing_budget: { plan: 158000, fact: 40663, pct: 25.7 },
+                leads: { plan: 167, fact: 35, pct: 21 },
+                demos_scheduled: { plan: 67, fact: 9, pct: 13.5 },
+                demos_completed: { plan: 40, fact: 2, pct: 5 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.26, pct: 65 },
+                conv_demo_to_completed: { plan: 0.6, fact: 0.22, pct: 37 },
+                conv_demo_to_payment: { plan: 0.13, fact: 1.5, pct: 1154 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 25000, leads: 20, payments: 2 },
+                    { name: "Call-center", icon: "☎️", budget: 10000, leads: 15, payments: 1 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 5663, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-12': {
+                revenue: { plan: 108108, fact: 140910, pct: 130.3 },
+                payments: { plan: 4, fact: 3, pct: 75 },
+                avg_price: { plan: 29700, fact: 46970, pct: 158.1 },
+                cac: { plan: 27473, fact: 15478, pct: 56.3 },
+                marketing_budget: { plan: 100000, fact: 46433, pct: 46.4 },
+                leads: { plan: 130, fact: 97, pct: 74.6 },
+                demos_scheduled: { plan: 52, fact: 41, pct: 78.8 },
+                demos_completed: { plan: 36, fact: 19, pct: 52.8 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.42, pct: 105 },
+                conv_demo_to_completed: { plan: 0.7, fact: 0.46, pct: 66 },
+                conv_demo_to_payment: { plan: 0.1, fact: 0.16, pct: 160 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 30000, leads: 50, payments: 2 },
+                    { name: "Call-center", icon: "☎️", budget: 10000, leads: 47, payments: 1 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 6432, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-11': {
+                revenue: { plan: 110880, fact: 65960, pct: 59.5 },
+                payments: { plan: 4, fact: 2, pct: 50 },
+                avg_price: { plan: 29700, fact: 32980, pct: 111 },
+                cac: { plan: 26786, fact: 33984, pct: 127 },
+                marketing_budget: { plan: 100000, fact: 67968, pct: 68 },
+                leads: { plan: 67, fact: 82, pct: 123 },
+                demos_scheduled: { plan: 27, fact: 30, pct: 112 },
+                demos_completed: { plan: 19, fact: 19, pct: 100 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.37, pct: 92 },
+                conv_demo_to_completed: { plan: 0.7, fact: 0.63, pct: 90 },
+                conv_demo_to_payment: { plan: 0.2, fact: 0.09, pct: 46 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 40000, leads: 10, payments: 0 },
+                    { name: "Call-center", icon: "☎️", budget: 15000, leads: 72, payments: 2 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 12968, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-10': {
+                revenue: { plan: 299376, fact: 26970, pct: 9 },
+                payments: { plan: 10, fact: 1, pct: 10 },
+                avg_price: { plan: 29700, fact: 26970, pct: 91 },
+                cac: { plan: 21429, fact: 152908, pct: 714 },
+                marketing_budget: { plan: 216000, fact: 152908, pct: 71 },
+                leads: { plan: 180, fact: 58, pct: 32 },
+                demos_scheduled: { plan: 72, fact: 22, pct: 31 },
+                demos_completed: { plan: 50, fact: 14, pct: 28 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.38, pct: 95 },
+                conv_demo_to_completed: { plan: 0.7, fact: 0.64, pct: 91 },
+                conv_demo_to_payment: { plan: 0.2, fact: 0.07, pct: 36 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 100000, leads: 27, payments: 0 },
+                    { name: "Таргет VK", icon: "💙", budget: 52908, leads: 31, payments: 1 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 0, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-9': {
+                revenue: { plan: 299376, fact: 53940, pct: 18 },
+                payments: { plan: 10, fact: 2, pct: 20 },
+                avg_price: { plan: 29700, fact: 26970, pct: 91 },
+                cac: { plan: 21429, fact: 41885, pct: 195 },
+                marketing_budget: { plan: 216000, fact: 83770, pct: 39 },
+                leads: { plan: 180, fact: 57, pct: 32 },
+                demos_scheduled: { plan: 72, fact: 22, pct: 31 },
+                demos_completed: { plan: 50, fact: 10, pct: 20 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.39, pct: 97 },
+                conv_demo_to_completed: { plan: 0.7, fact: 0.45, pct: 65 },
+                conv_demo_to_payment: { plan: 0.2, fact: 0.2, pct: 100 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 50000, leads: 34, payments: 1 },
+                    { name: "Таргет VK", icon: "💙", budget: 33770, leads: 23, payments: 1 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 0, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-8': {
+                revenue: { plan: 148500, fact: 0, pct: 0 },
+                payments: { plan: 5, fact: 0, pct: 0 },
+                avg_price: { plan: 29700, fact: 0, pct: 0 },
+                cac: { plan: 32100, fact: 0, pct: 0 },
+                marketing_budget: { plan: 160500, fact: 66164, pct: 41 },
+                leads: { plan: 107, fact: 60, pct: 56 },
+                demos_scheduled: { plan: 32, fact: 28, pct: 88 },
+                demos_completed: { plan: 25, fact: 16, pct: 64 },
+                conv_lead_to_demo: { plan: 0.3, fact: 0.47, pct: 156 },
+                conv_demo_to_completed: { plan: 0.8, fact: 0.57, pct: 71 },
+                conv_demo_to_payment: { plan: 0.2, fact: 0, pct: 0 },
+                channels: [
+                    { name: "Call-center", icon: "☎️", budget: 40000, leads: 39, payments: 0 },
+                    { name: "Таргет VK", icon: "💙", budget: 26163, leads: 21, payments: 0 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 0, leads: 0, payments: 0 }
+                ]
+            },
+            '2025-7': {
+                revenue: { plan: 94950, fact: 0, pct: 0 },
+                payments: { plan: 5, fact: 0, pct: 0 },
+                avg_price: { plan: 18990, fact: 0, pct: 0 },
+                cac: { plan: 32100, fact: 0, pct: 0 },
+                marketing_budget: { plan: 160500, fact: 112120, pct: 70 },
+                leads: { plan: 107, fact: 41, pct: 38 },
+                demos_scheduled: { plan: 32, fact: 11, pct: 34 },
+                demos_completed: { plan: 25, fact: 6, pct: 24 },
+                conv_lead_to_demo: { plan: 0.3, fact: 0.27, pct: 89 },
+                conv_demo_to_completed: { plan: 0.8, fact: 0.55, pct: 68 },
+                conv_demo_to_payment: { plan: 0.2, fact: 0, pct: 0 },
+                channels: [
+                    { name: "Call-center", icon: "☎️", budget: 80000, leads: 24, payments: 0 },
+                    { name: "Таргет VK", icon: "💙", budget: 32120, leads: 17, payments: 0 },
+                    { name: "Яндекс.Директ", icon: "🔍", budget: 0, leads: 0, payments: 0 }
+                ]
+            }
+        };
+
+        let currentPeriod = '2026-1';
+        let dashboardData = {};
+        let planFactChart = null;
+        let trendChart = null;
+        let isLoading = false;
+
+        // ========================================
+        // DATA LOADING
+        // ========================================
+        function showLoading(show, text = 'Загрузка данных из Google Sheets...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            if (show) {
+                loadingText.textContent = text;
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+            isLoading = show;
+            document.getElementById('refreshBtn').disabled = show;
+        }
+
+        function updateDataStatus(isLive, lastUpdated = null) {
+            const statusEl = document.getElementById('dataStatus');
+            const textEl = document.getElementById('dataStatusText');
+            if (isLive) {
+                statusEl.className = 'data-status live';
+                textEl.textContent = lastUpdated ? `Обновлено: ${lastUpdated}` : 'Live данные';
+            } else {
+                statusEl.className = 'data-status cached';
+                textEl.textContent = 'Кэшированные данные';
+            }
+        }
+
+        async function loadDataFromSheet(periodKey) {
+            const config = SHEETS_CONFIG[periodKey];
+            if (!config) {
+                console.error('Конфигурация не найдена для:', periodKey);
+                return null;
+            }
+
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${config.gid}`;
+            const proxyUrl = CORS_PROXIES[currentProxyIndex] + encodeURIComponent(csvUrl);
+
+            console.log(`Загружаем данные для ${config.name}...`);
+
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+                    throw new Error('Ошибка загрузки');
+                }
+
+                const csvText = await response.text();
+
+                return new Promise((resolve, reject) => {
+                    Papa.parse(csvText, {
+                        complete: (results) => {
+                            console.log('CSV загружен, строк:', results.data.length);
+                            resolve(results.data);
+                        },
+                        error: (error) => reject(error)
+                    });
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                // Try alternate proxy
+                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+                throw error;
+            }
+        }
+
+        function parseNumber(value) {
+            if (!value) return 0;
+            let str = value.toString()
+                .replace(/\s/g, '')
+                .replace(/₽/g, '')
+                .replace(/р\./gi, '')
+                .replace(/[^\d,.\-]/g, '')
+                .replace(',', '.');
+            return parseFloat(str) || 0;
+        }
+
+        function parseSheetData(data, periodKey) {
+            const parsed = {
+                revenue: { plan: 0, fact: 0, pct: 0 },
+                payments: { plan: 0, fact: 0, pct: 0 },
+                avg_price: { plan: 0, fact: 0, pct: 0 },
+                cac: { plan: 0, fact: 0, pct: 0 },
+                marketing_budget: { plan: 0, fact: 0, pct: 0 },
+                leads: { plan: 0, fact: 0, pct: 0 },
+                demos_scheduled: { plan: 0, fact: 0, pct: 0 },
+                demos_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_lead_to_demo: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_payment: { plan: 0, fact: 0, pct: 0 },
+                channels: []
+            };
+
+            // Индексы колонок (на основе реальной структуры CSV)
+            // Колонка B (index 1): Канал/ответственный
+            // Колонка C (index 2): Подкатегория/метрика канала
+            // Колонка D (index 3): Название ключевой метрики
+            // Колонка E (index 4): План
+            // Колонка F (index 5): Факт
+            // Колонка G (index 6): % достижения
+            const metricColIndex = 3;
+            const planIdx = 4;
+            const factIdx = 5;
+            const percentIdx = 6;
+            console.log('Используем колонки: метрика=' + metricColIndex + ', план=' + planIdx + ', факт=' + factIdx);
+
+            // Каналы - все возможные каналы из таблицы (план и факт)
+            const defaultChannelData = () => ({
+                budgetPlan: 0, budgetFact: 0,
+                leadsPlan: 0, leadsFact: 0,
+                demosScheduledPlan: 0, demosScheduledFact: 0,
+                demosCompletedPlan: 0, demosCompletedFact: 0,
+                paymentsPlan: 0, paymentsFact: 0,
+                impressionsPlan: 0, impressionsFact: 0,
+                clicksPlan: 0, clicksFact: 0,
+                ctrPlan: 0, ctrFact: 0,
+                cpcPlan: 0, cpcFact: 0,
+                // Конверсии по каналу (из таблицы)
+                convLeadToDemoPlan: 0, convLeadToDemoFact: 0,
+                convDemoScheduledToCompletedPlan: 0, convDemoScheduledToCompletedFact: 0,
+                convDemoToPaymentPlan: 0, convDemoToPaymentFact: 0
+            });
+            const channelsMap = {
+                lead2call: { name: 'lead2call', icon: '📞', ...defaultChannelData() },
+                callcenter_external: { name: 'Call-center Внешний', icon: '📱', ...defaultChannelData() },
+                callcenter_internal: { name: 'Call-center Внутренний', icon: '☎️', ...defaultChannelData() },
+                yandex: { name: 'Яндекс.Директ', icon: '🔍', ...defaultChannelData() },
+                vk: { name: 'Таргет VK', icon: '💙', ...defaultChannelData() },
+                content: { name: 'Контент-маркетинг', icon: '📲', ...defaultChannelData() },
+                events: { name: 'Выступления', icon: '🎤', ...defaultChannelData() },
+                avito: { name: 'Авито', icon: '📢', ...defaultChannelData() }
+            };
+            let currentChannel = null;
+
+            try {
+                // Отладка: показываем первые 15 строк данных
+                console.log('📋 Первые 15 строк данных:');
+                for (let i = 0; i < Math.min(data.length, 15); i++) {
+                    const r = data[i];
+                    if (r) {
+                        console.log(`Строка ${i}: col1="${r[1]||''}" | col2="${r[2]||''}" | col3="${r[3]||''}" | col4="${r[4]||''}" | col5="${r[5]||''}"`);
+                    }
+                }
+
+                // Отладка: показываем строки 25-50 (данные каналов)
+                console.log('📋 Строки 25-50 (данные каналов):');
+                for (let i = 25; i < Math.min(data.length, 50); i++) {
+                    const r = data[i];
+                    if (r) {
+                        console.log(`Строка ${i}: col1="${r[1]||''}" | col2="${r[2]||''}" | col3="${r[3]||''}" | col4="${r[4]||''}" | col5="${r[5]||''}"`);
+                    }
+                }
+
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    if (!row || row.length < 5) continue;
+
+                    const col1 = (row[1] || '').toString().toLowerCase().trim();
+                    const col2 = (row[2] || '').toString().toLowerCase().trim();
+                    const metricName = (row[metricColIndex] || '').toString().toLowerCase().trim();
+
+                    // Debug для первых 10 строк - ВЕРСИЯ 2
+                    if (i < 10) {
+                        console.log(`🔥 ROW_${i}: metric="${metricName}" | c1="${col1}" | c2="${col2}"`);
+                    }
+
+                    // Определяем канал по строке в col1
+                    if (col1.includes('lead2call')) {
+                        currentChannel = 'lead2call';
+                        console.log(`📌 Обнаружен канал lead2call в строке ${i}`)
+                    } else if (col1.includes('call-center') && (col1.includes('внешн') || col1.includes('телефонистка') || col1.includes('зинаид'))) {
+                        currentChannel = 'callcenter_external';
+                    } else if (col1.includes('call-center') && col1.includes('внутр')) {
+                        currentChannel = 'callcenter_internal';
+                    } else if (col1.includes('call-center') || col1.includes('call-центр')) {
+                        currentChannel = 'callcenter_internal'; // default to internal
+                    } else if (col1.includes('яндекс') || col1.includes('директ')) {
+                        currentChannel = 'yandex';
+                    } else if (col1.includes('таргет') && col1.includes('vk')) {
+                        currentChannel = 'vk';
+                    } else if (col1.includes('контент') || col1.includes('shorts') || col1.includes('reels')) {
+                        currentChannel = 'content';
+                    } else if (col1.includes('выступлени') || col1.includes('мероприятия')) {
+                        currentChannel = 'events';
+                    } else if (col1.includes('авито')) {
+                        currentChannel = 'avito';
+                    }
+
+                    // Парсинг ключевых метрик
+                    if (metricName.includes('выручка') && !metricName.includes('с демо') && parsed.revenue.plan === 0) {
+                        parsed.revenue.plan = parseNumber(row[planIdx]);
+                        parsed.revenue.fact = parseNumber(row[factIdx]);
+                        parsed.revenue.pct = parseNumber(row[percentIdx]) || (parsed.revenue.plan > 0 ? (parsed.revenue.fact / parsed.revenue.plan * 100) : 0);
+                    }
+
+                    if (metricName.includes('количество оплат') && parsed.payments.plan === 0) {
+                        parsed.payments.plan = parseNumber(row[planIdx]);
+                        parsed.payments.fact = parseNumber(row[factIdx]);
+                        parsed.payments.pct = parseNumber(row[percentIdx]) || (parsed.payments.plan > 0 ? (parsed.payments.fact / parsed.payments.plan * 100) : 0);
+                    }
+
+                    if (metricName.includes('кол-во лидов') && !currentChannel && parsed.leads.plan === 0) {
+                        parsed.leads.plan = parseNumber(row[planIdx]);
+                        parsed.leads.fact = parseNumber(row[factIdx]);
+                        parsed.leads.pct = parseNumber(row[percentIdx]) || (parsed.leads.plan > 0 ? (parsed.leads.fact / parsed.leads.plan * 100) : 0);
+                    }
+
+                    if (metricName.includes('демонстраций назначено') && !currentChannel && parsed.demos_scheduled.plan === 0) {
+                        parsed.demos_scheduled.plan = parseNumber(row[planIdx]);
+                        parsed.demos_scheduled.fact = parseNumber(row[factIdx]);
+                        parsed.demos_scheduled.pct = parseNumber(row[percentIdx]) || (parsed.demos_scheduled.plan > 0 ? (parsed.demos_scheduled.fact / parsed.demos_scheduled.plan * 100) : 0);
+                    }
+
+                    if (metricName.includes('демонстрации проведено') && !currentChannel && parsed.demos_completed.plan === 0) {
+                        parsed.demos_completed.plan = parseNumber(row[planIdx]);
+                        parsed.demos_completed.fact = parseNumber(row[factIdx]);
+                        parsed.demos_completed.pct = parseNumber(row[percentIdx]) || (parsed.demos_completed.plan > 0 ? (parsed.demos_completed.fact / parsed.demos_completed.plan * 100) : 0);
+                    }
+
+                    if (metricName.includes('маркетинговый бюджет') && !currentChannel && parsed.marketing_budget.plan === 0) {
+                        parsed.marketing_budget.plan = parseNumber(row[planIdx]);
+                        parsed.marketing_budget.fact = parseNumber(row[factIdx]);
+                        parsed.marketing_budget.pct = parseNumber(row[percentIdx]) || (parsed.marketing_budget.plan > 0 ? (parsed.marketing_budget.fact / parsed.marketing_budget.plan * 100) : 0);
+                    }
+
+                    // CAC (стоимость клиента) - читаем из таблицы
+                    if (metricName.includes('стоимость клиента') || metricName.includes('cac')) {
+                        console.log(`🔍 CAC row ${i}: metricName="${metricName}", channel=${currentChannel}, plan="${row[planIdx]}", fact="${row[factIdx]}"`);
+                        if (!currentChannel && parsed.cac.plan === 0) {
+                            parsed.cac.plan = parseNumber(row[planIdx]);
+                            parsed.cac.fact = parseNumber(row[factIdx]);
+                            parsed.cac.pct = parseNumber(row[percentIdx]) || (parsed.cac.plan > 0 ? (parsed.cac.fact / parsed.cac.plan * 100) : 0);
+                            console.log(`📊 CAC из таблицы: plan=${parsed.cac.plan}, fact=${parsed.cac.fact}`);
+                        }
+                    }
+
+                    // Средний чек (AvPrice) - читаем из таблицы
+                    if (metricName.includes('avprice') || metricName.includes('средний чек')) {
+                        console.log(`🔍 AvPrice row ${i}: metricName="${metricName}", channel=${currentChannel}, plan="${row[planIdx]}", fact="${row[factIdx]}"`);
+                        if (!currentChannel && parsed.avg_price.plan === 0) {
+                            parsed.avg_price.plan = parseNumber(row[planIdx]);
+                            parsed.avg_price.fact = parseNumber(row[factIdx]);
+                            parsed.avg_price.pct = parseNumber(row[percentIdx]) || (parsed.avg_price.plan > 0 ? (parsed.avg_price.fact / parsed.avg_price.plan * 100) : 0);
+                            console.log(`📊 AvPrice из таблицы: plan=${parsed.avg_price.plan}, fact=${parsed.avg_price.fact}`);
+                        }
+                    }
+
+                    // Конверсии
+                    if (metricName.includes('конверсия')) {
+                        if (metricName.includes('лид') && metricName.includes('демо назначено')) {
+                            parsed.conv_lead_to_demo.plan = parseNumber(row[planIdx]);
+                            parsed.conv_lead_to_demo.fact = parseNumber(row[factIdx]);
+                        }
+                        if (metricName.includes('демо назначено') && metricName.includes('демо проведено')) {
+                            parsed.conv_demo_to_completed.plan = parseNumber(row[planIdx]);
+                            parsed.conv_demo_to_completed.fact = parseNumber(row[factIdx]);
+                        }
+                        if (metricName.includes('демо проведено') && metricName.includes('оплата')) {
+                            parsed.conv_demo_to_payment.plan = parseNumber(row[planIdx]);
+                            parsed.conv_demo_to_payment.fact = parseNumber(row[factIdx]);
+                        }
+                    }
+
+                    // Каналы - используем col2 (колонка C) для названий метрик каналов
+                    if (currentChannel && channelsMap[currentChannel]) {
+                        const ch = channelsMap[currentChannel];
+                        if (col2.includes('бюджет')) {
+                            ch.budgetPlan = parseNumber(row[planIdx]);
+                            ch.budgetFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('кол-во лидов') || col2.includes('количество лидов')) {
+                            ch.leadsPlan = parseNumber(row[planIdx]);
+                            ch.leadsFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('демонстраций назначено')) {
+                            ch.demosScheduledPlan = parseNumber(row[planIdx]);
+                            ch.demosScheduledFact = parseNumber(row[factIdx]);
+                            console.log(`🎯 ${ch.name}: Демо назначено plan=${ch.demosScheduledPlan}, fact=${ch.demosScheduledFact}`);
+                        }
+                        if (col2.includes('демонстрации проведено')) {
+                            ch.demosCompletedPlan = parseNumber(row[planIdx]);
+                            ch.demosCompletedFact = parseNumber(row[factIdx]);
+                            console.log(`🎯 ${ch.name}: Демо проведено plan=${ch.demosCompletedPlan}, fact=${ch.demosCompletedFact}`);
+                        }
+                        if (col2.includes('оплат получено')) {
+                            ch.paymentsPlan = parseNumber(row[planIdx]);
+                            ch.paymentsFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('показы') || col2.includes('кол-во звонков')) {
+                            ch.impressionsPlan = parseNumber(row[planIdx]);
+                            ch.impressionsFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('дозвон') || col2.includes('клики')) {
+                            ch.clicksPlan = parseNumber(row[planIdx]);
+                            ch.clicksFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('ctr')) {
+                            ch.ctrPlan = parseNumber(row[planIdx]);
+                            ch.ctrFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('cpc')) {
+                            ch.cpcPlan = parseNumber(row[planIdx]);
+                            ch.cpcFact = parseNumber(row[factIdx]);
+                        }
+                        // Конверсии внутри канала
+                        if (col2.includes('конверсия') && col2.includes('лид') && col2.includes('демо')) {
+                            ch.convLeadToDemoPlan = parseNumber(row[planIdx]);
+                            ch.convLeadToDemoFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('конверсия') && col2.includes('демо назнач') && col2.includes('демо провед')) {
+                            ch.convDemoScheduledToCompletedPlan = parseNumber(row[planIdx]);
+                            ch.convDemoScheduledToCompletedFact = parseNumber(row[factIdx]);
+                        }
+                        if (col2.includes('конверсия') && col2.includes('демо') && col2.includes('оплат')) {
+                            ch.convDemoToPaymentPlan = parseNumber(row[planIdx]);
+                            ch.convDemoToPaymentFact = parseNumber(row[factIdx]);
+                        }
+                    }
+                }
+
+                // Рассчитываем CAC и средний чек ТОЛЬКО если они не были прочитаны из таблицы
+                if (parsed.cac.fact === 0 && parsed.payments.fact > 0 && parsed.marketing_budget.fact > 0) {
+                    parsed.cac.fact = Math.round(parsed.marketing_budget.fact / parsed.payments.fact);
+                    console.log(`📊 CAC fact рассчитан: ${parsed.cac.fact}`);
+                }
+                if (parsed.avg_price.fact === 0 && parsed.payments.fact > 0 && parsed.revenue.fact > 0) {
+                    parsed.avg_price.fact = Math.round(parsed.revenue.fact / parsed.payments.fact);
+                    console.log(`📊 AvPrice fact рассчитан: ${parsed.avg_price.fact}`);
+                }
+                if (parsed.cac.plan === 0 && parsed.payments.plan > 0 && parsed.marketing_budget.plan > 0) {
+                    parsed.cac.plan = Math.round(parsed.marketing_budget.plan / parsed.payments.plan);
+                    console.log(`📊 CAC plan рассчитан: ${parsed.cac.plan}`);
+                }
+                if (parsed.cac.plan > 0 && parsed.cac.fact > 0 && parsed.cac.pct === 0) {
+                    parsed.cac.pct = Math.round(parsed.cac.fact / parsed.cac.plan * 100);
+                }
+
+                // Рассчитываем средний чек (план берём из выручки/оплаты если не задан)
+                if (parsed.avg_price.plan === 0 && parsed.payments.plan > 0 && parsed.revenue.plan > 0) {
+                    parsed.avg_price.plan = Math.round(parsed.revenue.plan / parsed.payments.plan);
+                    console.log(`📊 AvPrice plan рассчитан: ${parsed.avg_price.plan}`);
+                }
+                if (parsed.avg_price.plan > 0 && parsed.avg_price.fact > 0 && parsed.avg_price.pct === 0) {
+                    parsed.avg_price.pct = Math.round(parsed.avg_price.fact / parsed.avg_price.plan * 100);
+                }
+
+                // Рассчитываем .pct для конверсий (fact/plan * 100)
+                if (parsed.conv_lead_to_demo.plan > 0 && parsed.conv_lead_to_demo.fact > 0) {
+                    parsed.conv_lead_to_demo.pct = Math.round(parsed.conv_lead_to_demo.fact / parsed.conv_lead_to_demo.plan * 100);
+                }
+                if (parsed.conv_demo_to_completed.plan > 0 && parsed.conv_demo_to_completed.fact > 0) {
+                    parsed.conv_demo_to_completed.pct = Math.round(parsed.conv_demo_to_completed.fact / parsed.conv_demo_to_completed.plan * 100);
+                }
+                if (parsed.conv_demo_to_payment.plan > 0 && parsed.conv_demo_to_payment.fact > 0) {
+                    parsed.conv_demo_to_payment.pct = Math.round(parsed.conv_demo_to_payment.fact / parsed.conv_demo_to_payment.plan * 100);
+                }
+
+                // Конвертируем каналы (показываем если есть план или факт по любой метрике)
+                console.log('📊 Распарсенные каналы:', JSON.stringify(channelsMap, null, 2));
+                parsed.channels = Object.values(channelsMap).filter(ch =>
+                    ch.budgetPlan > 0 || ch.budgetFact > 0 ||
+                    ch.leadsPlan > 0 || ch.leadsFact > 0 ||
+                    ch.demosScheduledPlan > 0 || ch.demosScheduledFact > 0 ||
+                    ch.demosCompletedPlan > 0 || ch.demosCompletedFact > 0 ||
+                    ch.paymentsPlan > 0 || ch.paymentsFact > 0
+                );
+                if (parsed.channels.length === 0) {
+                    parsed.channels = CACHED_DATA[periodKey]?.channels || [];
+                }
+
+                console.log('Распознанные данные:', parsed);
+                return parsed;
+
+            } catch (e) {
+                console.error('Ошибка парсинга:', e);
+                return null;
+            }
+        }
+
+        async function loadPeriodData(periodKey, forceRefresh = false) {
+            if (isLoading) return;
+
+            showLoading(true);
+            currentPeriod = periodKey;
+
+            try {
+                console.log('Загрузка данных для периода:', periodKey);
+                const rawData = await loadDataFromSheet(periodKey);
+                console.log('Получено строк:', rawData?.length || 0);
+
+                if (rawData) {
+                    const parsed = parseSheetData(rawData, periodKey);
+                    console.log('Распознано:', parsed);
+                    console.log('Revenue plan:', parsed?.revenue?.plan);
+
+                    if (parsed && parsed.revenue.plan > 0) {
+                        dashboardData[periodKey] = parsed;
+                        updateDataStatus(true, new Date().toLocaleTimeString('ru-RU'));
+                        updateDashboard();
+                        showLoading(false);
+                        console.log('✅ Данные загружены успешно!');
+                        return;
+                    } else {
+                        console.warn('⚠️ Данные не прошли валидацию, revenue.plan:', parsed?.revenue?.plan);
+                    }
+                }
+                throw new Error('Не удалось распознать данные');
+            } catch (error) {
+                console.error('❌ Ошибка, используем кэш:', error);
+                if (CACHED_DATA[periodKey]) {
+                    dashboardData[periodKey] = CACHED_DATA[periodKey];
+                    updateDataStatus(false);
+                    updateDashboard();
+                }
+            }
+            showLoading(false);
+        }
+
+        async function loadAllPeriodsForTrend() {
+            const periods = Object.keys(SHEETS_CONFIG);
+            for (const periodKey of periods) {
+                if (!dashboardData[periodKey]) {
+                    dashboardData[periodKey] = CACHED_DATA[periodKey] || null;
+                }
+            }
+        }
+
+        function refreshData() {
+            loadPeriodData(currentPeriod, true);
+        }
+
+        // ========================================
+        // UTILITIES
+        // ========================================
+        function formatCurrency(value) {
+            if (value === 0) return '0 ₽';
+            return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(value) + ' ₽';
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value);
+        }
+
+        function formatPercent(value) {
+            return value.toFixed(1) + '%';
+        }
+
+        // Нормализует конверсию: если > 1, это уже проценты, иначе умножаем на 100
+        function normalizeConversion(value) {
+            if (!value || value === 0) return 0;
+            return value > 1 ? value : value * 100;
+        }
+
+        function getThemeColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                chartBgPlan: isDark ? 'rgba(100, 116, 139, 0.2)' : '#e2e8f0',
+                chartBorderPlan: isDark ? 'rgba(100, 116, 139, 0.4)' : '#cbd5e1',
+                chartGrid: isDark ? 'rgba(255, 255, 255, 0.03)' : '#e2e8f0',
+                chartText: isDark ? '#9ca3af' : '#64748b',
+                chartTextSecondary: isDark ? '#6b7280' : '#94a3b8',
+                chartTooltipBg: isDark ? '#1f2937' : '#1e293b',
+                chartTooltipText: isDark ? '#f9fafb' : '#f8fafc',
+                chartTooltipBorder: isDark ? '#374151' : '#334155',
+                chartPointBorder: isDark ? '#030712' : '#ffffff',
+                accentCyan: isDark ? '#06b6d4' : '#0891b2',
+                accentEmerald: isDark ? '#10b981' : '#059669',
+                accentRose: isDark ? '#f43f5e' : '#e11d48',
+                accentAmber: isDark ? '#f59e0b' : '#d97706'
+            };
+        }
+
+        function getHealthScore(data) {
+            let score = 0;
+            if (data.revenue.pct >= 100) score += 30;
+            else if (data.revenue.pct >= 80) score += 25;
+            else if (data.revenue.pct >= 50) score += 15;
+            else score += data.revenue.pct * 0.3;
+
+            if (data.leads.pct >= 100) score += 20;
+            else if (data.leads.pct >= 80) score += 16;
+            else if (data.leads.pct >= 50) score += 10;
+            else score += data.leads.pct * 0.2;
+
+            if (data.demos_completed.pct >= 100) score += 20;
+            else if (data.demos_completed.pct >= 80) score += 16;
+            else if (data.demos_completed.pct >= 50) score += 10;
+            else score += data.demos_completed.pct * 0.2;
+
+            const avgConv = (data.conv_lead_to_demo.pct + data.conv_demo_to_completed.pct) / 2;
+            if (avgConv >= 90) score += 15;
+            else if (avgConv >= 70) score += 12;
+            else if (avgConv >= 50) score += 8;
+            else score += avgConv * 0.15;
+
+            if (data.cac.pct <= 80) score += 15;
+            else if (data.cac.pct <= 100) score += 12;
+            else if (data.cac.pct <= 150) score += 8;
+            else score += 5;
+
+            return Math.min(100, Math.round(score));
+        }
+
+        function getHealthColor(score) {
+            if (score >= 80) return 'var(--accent-emerald)';
+            if (score >= 60) return 'var(--accent-amber)';
+            return 'var(--accent-rose)';
+        }
+
+        function getHealthStatus(score) {
+            if (score >= 80) return { icon: '🚀', text: 'Отличные показатели', desc: 'Бизнес работает эффективно. Продолжайте в том же духе!' };
+            if (score >= 60) return { icon: '⚡', text: 'Требует внимания', desc: 'Есть области для улучшения. Обратите внимание на выделенные метрики.' };
+            if (score >= 40) return { icon: '⚠️', text: 'Критическое состояние', desc: 'Несколько ключевых метрик значительно отстают от плана.' };
+            return { icon: '🔴', text: 'Требуется срочное вмешательство', desc: 'Большинство показателей критически ниже плана. Необходимы немедленные действия.' };
+        }
+
+        // ========================================
+        // RENDER FUNCTIONS
+        // ========================================
+        function renderHealthScore() {
+            const data = dashboardData[currentPeriod];
+            const score = getHealthScore(data);
+            const color = getHealthColor(score);
+            const status = getHealthStatus(score);
+
+            const circumference = 2 * Math.PI * 54;
+            const offset = circumference - (score / 100) * circumference;
+
+            const container = document.getElementById('healthScoreCard');
+            container.innerHTML = `
+                <div class="health-gauge">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                        <circle class="health-gauge-bg" cx="70" cy="70" r="54" />
+                        <circle class="health-gauge-fill" cx="70" cy="70" r="54" stroke="${color}" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" />
+                    </svg>
+                    <div class="health-gauge-value">
+                        <div class="health-gauge-number" style="color: ${color}">${score}</div>
+                        <div class="health-gauge-label">Health Score</div>
+                    </div>
+                </div>
+                <div class="health-info">
+                    <div class="health-status">
+                        <span class="health-status-icon">${status.icon}</span>
+                        <span style="color: ${color}">${status.text}</span>
+                    </div>
+                    <p class="health-description">${status.desc}</p>
+                </div>
+                <div class="health-metrics">
+                    <div class="health-metric">
+                        <div class="health-metric-value">${formatPercent(data.revenue.pct)}</div>
+                        <div class="health-metric-label">Выручка</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="health-metric-value">${formatPercent(data.leads.pct)}</div>
+                        <div class="health-metric-label">Лиды</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="health-metric-value">${formatPercent(data.demos_completed.pct)}</div>
+                        <div class="health-metric-label">Демо</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="health-metric-value">${formatPercent(data.payments.pct)}</div>
+                        <div class="health-metric-label">Оплаты</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderKPICards() {
+            const data = dashboardData[currentPeriod];
+            const prevPeriod = getPreviousPeriod(currentPeriod);
+            const prevData = dashboardData[prevPeriod];
+
+            const kpis = [
+                { key: 'revenue', label: 'Выручка', icon: '💰', iconClass: 'cyan', isCurrency: true, getValue: d => d.revenue.fact, getPlan: d => d.revenue.plan, getPct: d => d.revenue.pct },
+                { key: 'payments', label: 'Оплаты', icon: '✓', iconClass: 'violet', isCurrency: false, getValue: d => d.payments.fact, getPlan: d => d.payments.plan, getPct: d => d.payments.pct },
+                { key: 'cac', label: 'CAC', icon: '📊', iconClass: 'amber', isCurrency: true, isInverse: true, getValue: d => d.cac.fact, getPlan: d => d.cac.plan, getPct: d => d.cac.pct },
+                { key: 'leads', label: 'Лиды', icon: '👥', iconClass: 'emerald', isCurrency: false, getValue: d => d.leads.fact, getPlan: d => d.leads.plan, getPct: d => d.leads.pct },
+                { key: 'demos', label: 'Демо проведено', icon: '🎯', iconClass: 'rose', isCurrency: false, getValue: d => d.demos_completed.fact, getPlan: d => d.demos_completed.plan, getPct: d => d.demos_completed.pct }
+            ];
+
+            const container = document.getElementById('kpiGrid');
+            container.innerHTML = kpis.map(kpi => {
+                const value = kpi.getValue(data);
+                const plan = kpi.getPlan(data);
+                const pct = kpi.getPct(data);
+
+                let momChange = 0;
+                let momClass = 'neutral';
+                if (prevData) {
+                    const prevValue = kpi.getValue(prevData);
+                    if (prevValue > 0) {
+                        momChange = ((value - prevValue) / prevValue) * 100;
+                        if (kpi.isInverse) {
+                            momClass = momChange < 0 ? 'up' : momChange > 0 ? 'down' : 'neutral';
+                        } else {
+                            momClass = momChange > 0 ? 'up' : momChange < 0 ? 'down' : 'neutral';
+                        }
+                    }
+                }
+
+                const progressClass = pct >= 80 ? 'success' : pct >= 50 ? 'warning' : 'danger';
+                const displayPct = Math.min(pct, 100);
+
+                return `
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon ${kpi.iconClass}">${kpi.icon}</div>
+                            <div class="kpi-trend ${momClass}">
+                                <span>${momChange >= 0 ? '↑' : '↓'}</span>
+                                <span>${Math.abs(momChange).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-label">${kpi.label}</div>
+                        <div class="kpi-value">${kpi.isCurrency ? formatCurrency(value) : formatNumber(value)}</div>
+                        <div class="kpi-plan">План: ${kpi.isCurrency ? formatCurrency(plan) : formatNumber(plan)} (${formatPercent(pct)})</div>
+                        <div class="kpi-progress">
+                            <div class="kpi-progress-bar ${progressClass}" style="width: ${displayPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAlerts() {
+            const data = dashboardData[currentPeriod];
+            const alerts = [];
+
+            if (data.revenue.pct < 50) {
+                alerts.push({ type: 'critical', icon: '🔴', title: 'Критическое отклонение выручки', text: `Выручка составляет ${formatPercent(data.revenue.pct)} от плана.`, action: 'Проверить воронку продаж' });
+            }
+            if (data.conv_demo_to_completed.pct < 70) {
+                alerts.push({ type: 'critical', icon: '📉', title: 'Низкая конверсия демо', text: `Конверсия = ${formatPercent(normalizeConversion(data.conv_demo_to_completed.fact))} при плане ${formatPercent(normalizeConversion(data.conv_demo_to_completed.plan))}`, action: 'Проверить процесс подтверждения демо' });
+            }
+            if (data.leads.pct < 50) {
+                alerts.push({ type: 'warning', icon: '👥', title: 'Недостаток лидов', text: `Получено ${formatPercent(data.leads.pct)} от плана.`, action: 'Увеличить бюджет на эффективные каналы' });
+            }
+            if (data.cac.pct > 150 && data.cac.fact > 0) {
+                alerts.push({ type: 'warning', icon: '💸', title: 'Высокий CAC', text: `${formatCurrency(data.cac.fact)} при плане ${formatCurrency(data.cac.plan)}`, action: 'Оптимизировать маркетинговые каналы' });
+            }
+            if (data.revenue.pct >= 100) {
+                alerts.push({ type: 'success', icon: '🎉', title: 'План по выручке выполнен!', text: `Выручка достигла ${formatPercent(data.revenue.pct)} от плана.`, action: null });
+            }
+            if (data.cac.pct < 80 && data.cac.fact > 0) {
+                alerts.push({ type: 'success', icon: '📈', title: 'CAC ниже плана', text: `${formatCurrency(data.cac.fact)} — это ${formatPercent(data.cac.pct)} от планового CAC.`, action: null });
+            }
+            if (alerts.length === 0) {
+                alerts.push({ type: 'info', icon: '✓', title: 'Показатели в норме', text: 'Критических отклонений от плана не обнаружено.', action: null });
+            }
+
+            const criticalCount = alerts.filter(a => a.type === 'critical').length;
+            const badge = document.getElementById('alertBadge');
+            badge.textContent = criticalCount || '✓';
+            badge.className = 'alert-badge ' + (criticalCount > 0 ? 'critical' : 'success');
+
+            const container = document.getElementById('alertsGrid');
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-card ${alert.type}">
+                    <div class="alert-icon">${alert.icon}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-text">${alert.text}</div>
+                        ${alert.action ? `<div class="alert-action">→ ${alert.action}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFunnel() {
+            const data = dashboardData[currentPeriod];
+            const stages = [
+                { key: 'leads', label: 'Лиды', plan: data.leads.plan, fact: data.leads.fact },
+                { key: 'demos_scheduled', label: 'Демо назначено', plan: data.demos_scheduled.plan, fact: data.demos_scheduled.fact },
+                { key: 'demos_completed', label: 'Демо проведено', plan: data.demos_completed.plan, fact: data.demos_completed.fact },
+                { key: 'payments', label: 'Оплаты', plan: data.payments.plan, fact: data.payments.fact }
+            ];
+
+            // Плановые конверсии между этапами (нормализуем если < 1)
+            const plannedConversions = [
+                null, // нет конверсии перед лидами
+                data.conv_lead_to_demo.plan > 0 ? (data.conv_lead_to_demo.plan < 1 ? data.conv_lead_to_demo.plan * 100 : data.conv_lead_to_demo.plan) : null,
+                data.conv_demo_to_completed.plan > 0 ? (data.conv_demo_to_completed.plan < 1 ? data.conv_demo_to_completed.plan * 100 : data.conv_demo_to_completed.plan) : null,
+                data.conv_demo_to_payment.plan > 0 ? (data.conv_demo_to_payment.plan < 1 ? data.conv_demo_to_payment.plan * 100 : data.conv_demo_to_payment.plan) : null
+            ];
+
+            const maxValue = Math.max(...stages.map(s => Math.max(s.plan, s.fact)));
+
+            // Находим конверсию, которая сильнее всего отстаёт от плана
+            let bottleneckIndex = -1;
+            let worstGap = 0; // отрицательный gap = отставание от плана
+            for (let i = 1; i < stages.length; i++) {
+                const prevFact = stages[i-1].fact;
+                const currFact = stages[i].fact;
+                if (prevFact > 0 && plannedConversions[i] !== null) {
+                    const factConv = (currFact / prevFact) * 100;
+                    const planConv = plannedConversions[i];
+                    const gap = factConv - planConv; // отрицательный = хуже плана
+                    if (gap < worstGap) {
+                        worstGap = gap;
+                        bottleneckIndex = i;
+                    }
+                }
+            }
+
+            const container = document.getElementById('funnelContainer');
+            container.innerHTML = stages.map((stage, i) => {
+                const planWidth = maxValue > 0 ? (stage.plan / maxValue) * 100 : 0;
+                const factWidth = maxValue > 0 ? (stage.fact / maxValue) * 100 : 0;
+
+                let conversionHtml = '';
+                if (i > 0) {
+                    const prevFact = stages[i-1].fact;
+                    const conv = prevFact > 0 ? ((stage.fact / prevFact) * 100).toFixed(0) : 0;
+                    const isBottleneck = i === bottleneckIndex;
+                    const planConv = plannedConversions[i];
+                    const planHint = planConv !== null ? ` (план ${Math.round(planConv)}%)` : '';
+                    conversionHtml = `<div class="funnel-conversion ${isBottleneck ? 'bottleneck' : ''}" title="План: ${planConv ? Math.round(planConv) + '%' : 'н/д'}">${isBottleneck ? '⚠️ ' : '→ '}${conv}%${isBottleneck ? planHint : ''}</div>`;
+                }
+
+                return `
+                    <div class="funnel-stage">
+                        <div class="funnel-label">${stage.label}</div>
+                        <div class="funnel-bars">
+                            <div class="funnel-bar-row">
+                                <span class="funnel-bar-type">План</span>
+                                <div class="funnel-bar-track"><div class="funnel-bar plan" style="width: ${planWidth}%"></div></div>
+                            </div>
+                            <div class="funnel-bar-row">
+                                <span class="funnel-bar-type">Факт</span>
+                                <div class="funnel-bar-track"><div class="funnel-bar fact" style="width: ${Math.max(factWidth, 2)}%"></div></div>
+                            </div>
+                        </div>
+                        <div class="funnel-value">${formatNumber(stage.fact)}</div>
+                        ${conversionHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPlanFactChart() {
+            const data = dashboardData[currentPeriod];
+            const ctx = document.getElementById('planFactChart').getContext('2d');
+            const colors = getThemeColors();
+
+            const metrics = [
+                { label: 'Выручка', pct: data.revenue.pct },
+                { label: 'Лиды', pct: data.leads.pct },
+                { label: 'Демо назн.', pct: data.demos_scheduled.pct },
+                { label: 'Демо пров.', pct: data.demos_completed.pct },
+                { label: 'Оплаты', pct: data.payments.pct }
+            ];
+
+            if (planFactChart) planFactChart.destroy();
+
+            planFactChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: metrics.map(m => m.label),
+                    datasets: [
+                        { label: 'План (100%)', data: metrics.map(() => 100), backgroundColor: colors.chartBgPlan, borderColor: colors.chartBorderPlan, borderWidth: 1, borderRadius: 8 },
+                        { label: 'Факт', data: metrics.map(m => Math.min(m.pct, 150)), backgroundColor: metrics.map(m => m.pct >= 80 ? `rgba(${document.documentElement.getAttribute('data-theme') === 'dark' ? '16, 185, 129' : '5, 150, 105'}, 0.8)` : m.pct >= 50 ? `rgba(${document.documentElement.getAttribute('data-theme') === 'dark' ? '245, 158, 11' : '217, 119, 6'}, 0.8)` : `rgba(${document.documentElement.getAttribute('data-theme') === 'dark' ? '244, 63, 94' : '225, 29, 72'}, 0.8)`), borderColor: metrics.map(m => m.pct >= 80 ? colors.accentEmerald : m.pct >= 50 ? colors.accentAmber : colors.accentRose), borderWidth: 2, borderRadius: 8 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { color: colors.chartText, font: { family: 'Outfit', size: 12 }, usePointStyle: true, padding: 20 } },
+                        tooltip: { backgroundColor: colors.chartTooltipBg, titleColor: colors.chartTooltipText, bodyColor: colors.chartTextSecondary, borderColor: colors.chartTooltipBorder, borderWidth: 1, cornerRadius: 8, padding: 12, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } }
+                    },
+                    scales: {
+                        x: { ticks: { color: colors.chartText, font: { family: 'Outfit', size: 11 } }, grid: { display: false } },
+                        y: { ticks: { color: colors.chartTextSecondary, font: { family: 'Space Mono', size: 11 }, callback: v => v + '%' }, grid: { color: colors.chartGrid, drawBorder: false }, max: 130 }
+                    }
+                }
+            });
+        }
+
+        function renderUnitEconomics() {
+            const data = dashboardData[currentPeriod];
+
+            // CAC - стоимость привлечения клиента
+            const cac = data.cac.fact > 0 ? data.cac.fact : 0;
+            const cacPlan = data.cac.plan > 0 ? data.cac.plan : 0;
+            const cacClass = cac === 0 ? 'primary' : (cac <= cacPlan ? 'success' : cac <= cacPlan * 1.5 ? 'warning' : 'danger');
+
+            // CPL - стоимость лида
+            const budget = data.marketing_budget.fact || 0;
+            const leads = data.leads.fact || 0;
+            const cpl = leads > 0 ? Math.round(budget / leads) : 0;
+            const cplPlan = data.leads.plan > 0 && data.marketing_budget.plan > 0 ? Math.round(data.marketing_budget.plan / data.leads.plan) : 0;
+            const cplClass = cpl === 0 ? 'primary' : (cpl <= cplPlan ? 'success' : cpl <= cplPlan * 1.5 ? 'warning' : 'danger');
+
+            // Средний чек
+            const avgCheck = data.avg_price.fact > 0 ? data.avg_price.fact : 0;
+            const avgCheckPlan = data.avg_price.plan > 0 ? data.avg_price.plan : (data.revenue.plan > 0 && data.payments.plan > 0 ? Math.round(data.revenue.plan / data.payments.plan) : 0);
+            const avgCheckClass = avgCheck === 0 ? 'primary' : (avgCheck >= avgCheckPlan ? 'success' : avgCheck >= avgCheckPlan * 0.8 ? 'warning' : 'danger');
+
+            // ROI маркетинга
+            const revenue = data.revenue.fact || 0;
+            const marketingROI = budget > 0 ? Math.round(((revenue - budget) / budget) * 100) : 0;
+            const roiClass = marketingROI > 0 ? 'success' : marketingROI >= -50 ? 'warning' : 'danger';
+
+            const container = document.getElementById('unitEconomicsGrid');
+            container.innerHTML = `
+                <div class="unit-metric">
+                    <div class="unit-metric-icon">🎯</div>
+                    <div class="unit-metric-value ${cacClass}">${cac > 0 ? formatCurrency(cac) : '—'}</div>
+                    <div class="unit-metric-label">CAC</div>
+                    <div class="unit-metric-sublabel">Стоимость клиента${cacPlan > 0 ? ` (план: ${formatCurrency(cacPlan)})` : ''}</div>
+                </div>
+                <div class="unit-metric">
+                    <div class="unit-metric-icon">👤</div>
+                    <div class="unit-metric-value ${cplClass}">${cpl > 0 ? formatCurrency(cpl) : '—'}</div>
+                    <div class="unit-metric-label">CPL</div>
+                    <div class="unit-metric-sublabel">Стоимость лида${cplPlan > 0 ? ` (план: ${formatCurrency(cplPlan)})` : ''}</div>
+                </div>
+                <div class="unit-metric">
+                    <div class="unit-metric-icon">💰</div>
+                    <div class="unit-metric-value ${avgCheckClass}">${avgCheck > 0 ? formatCurrency(avgCheck) : '—'}</div>
+                    <div class="unit-metric-label">Средний чек</div>
+                    <div class="unit-metric-sublabel">${avgCheckPlan > 0 ? `План: ${formatCurrency(avgCheckPlan)}` : ''}</div>
+                </div>
+                <div class="unit-metric">
+                    <div class="unit-metric-icon">📈</div>
+                    <div class="unit-metric-value ${roiClass}">${marketingROI > 0 ? '+' : ''}${marketingROI}%</div>
+                    <div class="unit-metric-label">ROI маркетинга</div>
+                    <div class="unit-metric-sublabel">${revenue > 0 && budget > 0 ? `${formatCurrency(revenue)} / ${formatCurrency(budget)}` : 'Нет данных'}</div>
+                </div>
+            `;
+
+            const formula = document.getElementById('unitFormula');
+            formula.innerHTML = `<div class="unit-formula-text">CPL = Бюджет (${formatCurrency(budget)}) ÷ Лиды (${leads}) = ${cpl > 0 ? formatCurrency(cpl) : '—'} | CAC = Бюджет ÷ Оплаты (${data.payments.fact || 0}) = ${cac > 0 ? formatCurrency(cac) : '—'}</div>`;
+        }
+
+        function renderChannelsTable() {
+            const data = dashboardData[currentPeriod];
+            const channels = data.channels || [];
+
+            // Функция для создания прогресс-бара
+            function progressBar(fact, plan, isCurrency = false, isInverse = false) {
+                if (plan === 0 && fact === 0) return '<span class="channel-empty">—</span>';
+
+                const pct = plan > 0 ? Math.round((fact / plan) * 100) : (fact > 0 ? 100 : 0);
+                const displayPct = Math.min(pct, 100);
+
+                // Для бюджета: меньше плана = хорошо (isInverse)
+                // Для лидов: больше плана = хорошо
+                let barClass = 'neutral';
+                if (isInverse) {
+                    barClass = pct <= 100 ? 'success' : pct <= 120 ? 'warning' : 'danger';
+                } else {
+                    barClass = pct >= 100 ? 'success' : pct >= 70 ? 'warning' : 'danger';
+                }
+
+                const displayValue = isCurrency ? formatCurrency(fact) : fact;
+
+                return `
+                    <div class="channel-progress">
+                        <div class="channel-progress-header">
+                            <span class="channel-progress-value">${displayValue}</span>
+                            <span class="channel-progress-pct ${barClass}">${pct}%</span>
+                        </div>
+                        <div class="channel-progress-bar">
+                            <div class="channel-progress-fill ${barClass}" style="width: ${displayPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Функция расчета конверсии
+            function calcConversion(from, to) {
+                if (from === 0 || to === 0) return null;
+                return Math.round((to / from) * 100);
+            }
+
+            // Функция для отображения значения конверсии с классом
+            function conversionDisplay(value) {
+                if (value === null || value === undefined) return '<span class="channel-detail-value">—</span>';
+                // Нормализуем значение если оно уже в процентах (меньше 1)
+                let displayValue = value;
+                if (value > 0 && value < 1) {
+                    displayValue = Math.round(value * 100);
+                }
+                let cls = 'channel-detail-value';
+                // Для конверсий >100% (перенос с прошлого периода и т.п.) показываем нейтрально
+                if (displayValue > 100) cls += ' positive';
+                else if (displayValue >= 30) cls += ' positive';
+                else if (displayValue >= 15) cls += ' warning';
+                else cls += ' negative';
+                return `<span class="${cls}">${displayValue}%</span>`;
+            }
+
+            const container = document.getElementById('channelsTable');
+            container.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Канал</th>
+                        <th>Бюджет</th>
+                        <th>Лиды</th>
+                        <th>Демо назн.</th>
+                        <th>Демо пров.</th>
+                        <th>Оплаты</th>
+                        <th>CPL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${channels.map((ch, idx) => {
+                        const budgetPlan = ch.budgetPlan ?? 0;
+                        const budgetFact = ch.budgetFact ?? ch.budget ?? 0;
+                        const leadsPlan = ch.leadsPlan ?? 0;
+                        const leadsFact = ch.leadsFact ?? ch.leads ?? 0;
+                        const demosScheduledPlan = ch.demosScheduledPlan ?? 0;
+                        const demosScheduledFact = ch.demosScheduledFact ?? 0;
+                        const demosCompletedPlan = ch.demosCompletedPlan ?? 0;
+                        const demosCompletedFact = ch.demosCompletedFact ?? 0;
+                        const paymentsPlan = ch.paymentsPlan ?? 0;
+                        const paymentsFact = ch.paymentsFact ?? 0;
+                        const cpl = leadsFact > 0 ? Math.round(budgetFact / leadsFact) : 0;
+
+                        // Дополнительные метрики (план/факт)
+                        const impressionsPlan = ch.impressionsPlan ?? 0;
+                        const impressionsFact = ch.impressionsFact ?? 0;
+                        const clicksPlan = ch.clicksPlan ?? 0;
+                        const clicksFact = ch.clicksFact ?? 0;
+
+                        // CTR и CPC (сначала из таблицы, иначе рассчитываем)
+                        const ctrFact = ch.ctrFact > 0 ? ch.ctrFact : (clicksFact > 0 && impressionsFact > 0 ? ((clicksFact / impressionsFact) * 100).toFixed(1) : 0);
+                        const ctrPlan = ch.ctrPlan ?? 0;
+                        const cpcFact = ch.cpcFact > 0 ? ch.cpcFact : (clicksFact > 0 && budgetFact > 0 ? Math.round(budgetFact / clicksFact) : 0);
+                        const cpcPlan = ch.cpcPlan ?? 0;
+
+                        // Конверсии - берём из таблицы если есть, иначе рассчитываем
+                        const convLeadToDemoFact = ch.convLeadToDemoFact > 0 ? ch.convLeadToDemoFact : calcConversion(leadsFact, demosScheduledFact);
+                        const convLeadToDemoPlan = ch.convLeadToDemoPlan ?? 0;
+                        const convDemoScheduledToCompletedFact = ch.convDemoScheduledToCompletedFact > 0 ? ch.convDemoScheduledToCompletedFact : calcConversion(demosScheduledFact, demosCompletedFact);
+                        const convDemoScheduledToCompletedPlan = ch.convDemoScheduledToCompletedPlan ?? 0;
+                        const convDemoToPaymentFact = ch.convDemoToPaymentFact > 0 ? ch.convDemoToPaymentFact : calcConversion(demosCompletedFact, paymentsFact);
+                        const convDemoToPaymentPlan = ch.convDemoToPaymentPlan ?? 0;
+
+                        return `
+                            <tr class="channel-row" data-channel-idx="${idx}" onclick="toggleChannelDetails(${idx})">
+                                <td>
+                                    <div class="channel-name">
+                                        <span class="channel-expand-icon">▶</span>
+                                        <span class="channel-icon">${ch.icon}</span>
+                                        ${ch.name}
+                                    </div>
+                                </td>
+                                <td>${progressBar(budgetFact, budgetPlan, true, true)}</td>
+                                <td>${progressBar(leadsFact, leadsPlan, false, false)}</td>
+                                <td>${progressBar(demosScheduledFact, demosScheduledPlan, false, false)}</td>
+                                <td>${progressBar(demosCompletedFact, demosCompletedPlan, false, false)}</td>
+                                <td>${progressBar(paymentsFact, paymentsPlan, false, false)}</td>
+                                <td class="channel-value">${cpl > 0 ? formatCurrency(cpl) : '—'}</td>
+                            </tr>
+                            <tr class="channel-details-row" data-details-idx="${idx}">
+                                <td colspan="7" class="channel-details-cell">
+                                    <div class="channel-details-content">
+                                        <div class="channel-details-grid">
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">Показы / Звонки</span>
+                                                ${impressionsPlan > 0 || impressionsFact > 0
+                                                    ? progressBar(impressionsFact, impressionsPlan, false, false)
+                                                    : '<span class="channel-detail-value">—</span>'}
+                                            </div>
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">Клики / Дозвоны</span>
+                                                ${clicksPlan > 0 || clicksFact > 0
+                                                    ? progressBar(clicksFact, clicksPlan, false, false)
+                                                    : '<span class="channel-detail-value">—</span>'}
+                                            </div>
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">CTR, %</span>
+                                                <span class="channel-detail-value">${ctrFact > 0 ? ctrFact + '%' : '—'}${ctrPlan > 0 ? ` <small style="color:var(--text-muted)">(план ${ctrPlan}%)</small>` : ''}</span>
+                                            </div>
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">CPC, ₽</span>
+                                                <span class="channel-detail-value">${cpcFact > 0 ? formatCurrency(cpcFact) : '—'}${cpcPlan > 0 ? ` <small style="color:var(--text-muted)">(план ${formatCurrency(cpcPlan)})</small>` : ''}</span>
+                                            </div>
+                                        </div>
+                                        <div class="channel-conversions-title">Конверсии по воронке</div>
+                                        <div class="channel-details-grid">
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">Лид → Демо назн.</span>
+                                                ${conversionDisplay(convLeadToDemoFact)}
+                                                ${convLeadToDemoPlan > 0 ? `<small style="color:var(--text-muted)">План: ${convLeadToDemoPlan}%</small>` : ''}
+                                            </div>
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">Демо назн. → Демо пров.</span>
+                                                ${conversionDisplay(convDemoScheduledToCompletedFact)}
+                                                ${convDemoScheduledToCompletedPlan > 0 ? `<small style="color:var(--text-muted)">План: ${convDemoScheduledToCompletedPlan}%</small>` : ''}
+                                            </div>
+                                            <div class="channel-detail-item">
+                                                <span class="channel-detail-label">Демо пров. → Оплата</span>
+                                                ${conversionDisplay(convDemoToPaymentFact)}
+                                                ${convDemoToPaymentPlan > 0 ? `<small style="color:var(--text-muted)">План: ${convDemoToPaymentPlan}%</small>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+        }
+
+        // Функция переключения развернутого состояния канала
+        function toggleChannelDetails(idx) {
+            const row = document.querySelector(`.channel-row[data-channel-idx="${idx}"]`);
+            const detailsRow = document.querySelector(`.channel-details-row[data-details-idx="${idx}"]`);
+
+            if (row && detailsRow) {
+                row.classList.toggle('expanded');
+                detailsRow.classList.toggle('visible');
+            }
+        }
+
+        function renderTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const colors = getThemeColors();
+
+            // Используем упорядоченный список периодов (от старого к новому)
+            const orderedPeriods = ['2025-7', '2025-8', '2025-9', '2025-10', '2025-11', '2025-12', '2026-1'];
+            const validPeriods = orderedPeriods.filter(p => dashboardData[p]);
+
+            const revenueData = validPeriods.map(p => dashboardData[p]?.revenue?.fact || 0);
+            const planData = validPeriods.map(p => dashboardData[p]?.revenue?.plan || 0);
+            const labels = validPeriods.map(p => {
+                const config = SHEETS_CONFIG[p];
+                return config ? config.name.split(' ')[0] : p;
+            });
+
+            if (trendChart) trendChart.destroy();
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 350);
+            gradient.addColorStop(0, document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(6, 182, 212, 0.3)' : 'rgba(8, 145, 178, 0.2)');
+            gradient.addColorStop(1, document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(6, 182, 212, 0)' : 'rgba(8, 145, 178, 0)');
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Факт', data: revenueData, borderColor: colors.accentCyan, backgroundColor: gradient, fill: true, tension: 0.4, pointRadius: 6, pointHoverRadius: 10, pointBackgroundColor: colors.accentCyan, pointBorderColor: colors.chartPointBorder, pointBorderWidth: 3, borderWidth: 3 },
+                        { label: 'План', data: planData, borderColor: colors.chartTextSecondary, borderDash: [8, 4], fill: false, tension: 0.4, pointRadius: 4, pointBackgroundColor: colors.chartTextSecondary, pointBorderColor: colors.chartPointBorder, pointBorderWidth: 2, borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { color: colors.chartText, font: { family: 'Outfit', size: 12 }, usePointStyle: true, padding: 20 } },
+                        tooltip: { backgroundColor: colors.chartTooltipBg, titleColor: colors.chartTooltipText, bodyColor: colors.chartTextSecondary, borderColor: colors.chartTooltipBorder, borderWidth: 1, cornerRadius: 8, padding: 12, callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
+                    },
+                    scales: {
+                        x: { ticks: { color: colors.chartText, font: { family: 'Outfit', size: 12 } }, grid: { display: false } },
+                        y: { ticks: { color: colors.chartTextSecondary, font: { family: 'Space Mono', size: 11 }, callback: v => formatCurrency(v) }, grid: { color: colors.chartGrid, drawBorder: false } }
+                    }
+                }
+            });
+        }
+
+        function getPreviousPeriod(current) {
+            const orderedPeriods = ['2026-1', '2025-12', '2025-11', '2025-10', '2025-9', '2025-8', '2025-7'];
+            const currentIndex = orderedPeriods.indexOf(current);
+            return currentIndex < orderedPeriods.length - 1 ? orderedPeriods[currentIndex + 1] : null;
+        }
+
+        function getPeriodLabel(periodKey) {
+            const config = SHEETS_CONFIG[periodKey];
+            if (config) return config.name;
+            // Fallback
+            const [year, month] = periodKey.split('-');
+            const months = ['', 'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+            return `${months[parseInt(month)]} ${year}`;
+        }
+
+        // ========================================
+        // UPDATE DASHBOARD
+        // ========================================
+        function updateDashboard() {
+            const data = dashboardData[currentPeriod];
+            if (!data) {
+                console.warn('Нет данных для периода:', currentPeriod);
+                return;
+            }
+            renderHealthScore();
+            renderKPICards();
+            renderAlerts();
+            renderFunnel();
+            renderPlanFactChart();
+            renderUnitEconomics();
+            renderChannelsTable();
+            renderTrendChart();
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        document.getElementById('periodSelector').addEventListener('change', (e) => {
+            loadPeriodData(e.target.value);
+        });
+
+        // ========================================
+        // INIT
+        // ========================================
+        async function initDashboard() {
+            // Initialize theme first
+            document.documentElement.setAttribute('data-theme', getPreferredTheme());
+            updateThemeToggle(getPreferredTheme());
+
+            // Load cached data for trend chart
+            await loadAllPeriodsForTrend();
+
+            // Load current period data from Google Sheets
+            await loadPeriodData(currentPeriod);
+        }
+
+        // Start the dashboard
+        initDashboard();
+    </script>
+</body>
+</html>
