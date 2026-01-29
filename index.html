@@ -2235,6 +2235,34 @@
             }
         }
 
+        // Функции для работы с localStorage кэшем
+        function saveToLocalCache(periodKey, data) {
+            try {
+                const cache = JSON.parse(localStorage.getItem('dashboardCache') || '{}');
+                cache[periodKey] = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('dashboardCache', JSON.stringify(cache));
+                console.log('💾 Данные сохранены в localStorage');
+            } catch (e) {
+                console.warn('Не удалось сохранить в localStorage:', e);
+            }
+        }
+
+        function getFromLocalCache(periodKey) {
+            try {
+                const cache = JSON.parse(localStorage.getItem('dashboardCache') || '{}');
+                if (cache[periodKey]) {
+                    console.log('📦 Загружены данные из localStorage');
+                    return cache[periodKey].data;
+                }
+            } catch (e) {
+                console.warn('Не удалось прочитать localStorage:', e);
+            }
+            return null;
+        }
+
         async function loadPeriodData(periodKey, forceRefresh = false) {
             if (isLoading) return;
 
@@ -2242,7 +2270,7 @@
             currentPeriod = periodKey;
 
             try {
-                console.log('Загрузка данных для периода:', periodKey);
+                console.log('🔄 Загрузка свежих данных для периода:', periodKey);
                 const rawData = await loadDataFromSheet(periodKey);
                 console.log('Получено строк:', rawData?.length || 0);
 
@@ -2253,6 +2281,8 @@
 
                     if (parsed && parsed.revenue.plan > 0) {
                         dashboardData[periodKey] = parsed;
+                        // Сохраняем успешно загруженные данные в localStorage
+                        saveToLocalCache(periodKey, parsed);
                         updateDataStatus(true, new Date().toLocaleTimeString('ru-RU'));
                         updateDashboard();
                         showLoading(false);
@@ -2264,8 +2294,15 @@
                 }
                 throw new Error('Не удалось распознать данные');
             } catch (error) {
-                console.error('❌ Ошибка, используем кэш:', error);
-                if (CACHED_DATA[periodKey]) {
+                console.error('❌ Ошибка загрузки:', error);
+                // Сначала пробуем localStorage, потом hardcoded кэш
+                const localCached = getFromLocalCache(periodKey);
+                if (localCached) {
+                    dashboardData[periodKey] = localCached;
+                    updateDataStatus(false, 'из кэша');
+                    updateDashboard();
+                } else if (CACHED_DATA[periodKey]) {
+                    console.log('📦 Используем встроенный кэш');
                     dashboardData[periodKey] = CACHED_DATA[periodKey];
                     updateDataStatus(false);
                     updateDashboard();
@@ -2275,10 +2312,18 @@
         }
 
         async function loadAllPeriodsForTrend() {
+            // Загружаем данные для графика трендов из localStorage или hardcoded кэша
+            // Эти данные используются только для исторического графика, не для текущего периода
             const periods = Object.keys(SHEETS_CONFIG);
             for (const periodKey of periods) {
                 if (!dashboardData[periodKey]) {
-                    dashboardData[periodKey] = CACHED_DATA[periodKey] || null;
+                    // Сначала пробуем localStorage
+                    const localCached = getFromLocalCache(periodKey);
+                    if (localCached) {
+                        dashboardData[periodKey] = localCached;
+                    } else if (CACHED_DATA[periodKey]) {
+                        dashboardData[periodKey] = CACHED_DATA[periodKey];
+                    }
                 }
             }
         }
@@ -2970,11 +3015,11 @@
             document.documentElement.setAttribute('data-theme', getPreferredTheme());
             updateThemeToggle(getPreferredTheme());
 
-            // Load cached data for trend chart
-            await loadAllPeriodsForTrend();
-
-            // Load current period data from Google Sheets
+            // Сначала загружаем свежие данные для текущего периода
             await loadPeriodData(currentPeriod);
+
+            // Затем загружаем исторические данные для графика трендов
+            await loadAllPeriodsForTrend();
         }
 
         // Start the dashboard
