@@ -1714,11 +1714,13 @@
         };
 
         const CORS_PROXIES = [
-            'https://corsproxy.io/?',
             'https://api.allorigins.win/raw?url=',
-            'https://api.codetabs.com/v1/proxy?quest='
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://thingproxy.freeboard.io/fetch/'
         ];
         let currentProxyIndex = 0;
+        const MAX_PROXY_RETRIES = CORS_PROXIES.length;
 
         // Cached data as fallback
         const CACHED_DATA = {
@@ -1892,34 +1894,54 @@
             }
 
             const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${config.gid}`;
-            const proxyUrl = CORS_PROXIES[currentProxyIndex] + encodeURIComponent(csvUrl);
 
-            console.log(`Загружаем данные для ${config.name}...`);
+            // Пробуем все прокси по очереди
+            for (let attempt = 0; attempt < MAX_PROXY_RETRIES; attempt++) {
+                const proxyIndex = (currentProxyIndex + attempt) % CORS_PROXIES.length;
+                const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(csvUrl);
 
-            try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) {
-                    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-                    throw new Error('Ошибка загрузки');
-                }
+                console.log(`📡 Попытка ${attempt + 1}/${MAX_PROXY_RETRIES}: ${config.name} через прокси #${proxyIndex + 1}`);
 
-                const csvText = await response.text();
-
-                return new Promise((resolve, reject) => {
-                    Papa.parse(csvText, {
-                        complete: (results) => {
-                            console.log('CSV загружен, строк:', results.data.length);
-                            resolve(results.data);
-                        },
-                        error: (error) => reject(error)
+                try {
+                    const response = await fetch(proxyUrl, {
+                        timeout: 10000,
+                        headers: { 'Accept': 'text/csv,*/*' }
                     });
-                });
-            } catch (error) {
-                console.error('Ошибка загрузки:', error);
-                // Try alternate proxy
-                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-                throw error;
+
+                    if (!response.ok) {
+                        console.warn(`⚠️ Прокси #${proxyIndex + 1} вернул ${response.status}`);
+                        continue; // Пробуем следующий прокси
+                    }
+
+                    const csvText = await response.text();
+
+                    // Проверяем что получили CSV, а не HTML ошибку
+                    if (csvText.includes('<!DOCTYPE') || csvText.includes('<html')) {
+                        console.warn(`⚠️ Прокси #${proxyIndex + 1} вернул HTML вместо CSV`);
+                        continue;
+                    }
+
+                    // Запоминаем рабочий прокси
+                    currentProxyIndex = proxyIndex;
+
+                    return new Promise((resolve, reject) => {
+                        Papa.parse(csvText, {
+                            complete: (results) => {
+                                console.log('✅ CSV загружен, строк:', results.data.length);
+                                resolve(results.data);
+                            },
+                            error: (error) => reject(error)
+                        });
+                    });
+                } catch (error) {
+                    console.warn(`⚠️ Прокси #${proxyIndex + 1} ошибка:`, error.message);
+                    // Продолжаем со следующим прокси
+                }
             }
+
+            // Все прокси не сработали
+            console.error('❌ Все прокси недоступны');
+            throw new Error('Не удалось загрузить данные: все прокси недоступны');
         }
 
         function parseNumber(value) {
