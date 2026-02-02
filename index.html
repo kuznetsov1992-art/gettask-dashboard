@@ -1556,6 +1556,7 @@
                     <span id="dataStatusText">Загрузка...</span>
                 </div>
                 <select class="period-selector" id="periodSelector">
+                    <option value="2026-2">Февраль 2026</option>
                     <option value="2026-1">Январь 2026</option>
                     <option value="2025-12">Декабрь 2025</option>
                     <option value="2025-11">Ноябрь 2025</option>
@@ -1704,6 +1705,7 @@
         const SPREADSHEET_ID = '10BPjt5TsaJLpIrLqvyMgEeUsSV4baa4NrGullTsB7AI';
 
         const SHEETS_CONFIG = {
+            '2026-2':  { gid: '1225075948', name: 'Февраль 2026' },
             '2026-1':  { gid: '502114286', name: 'Январь 2026' },
             '2025-12': { gid: '843488400', name: 'Декабрь 2025' },
             '2025-11': { gid: '948324373', name: 'Ноябрь 2025' },
@@ -1724,6 +1726,20 @@
 
         // Cached data as fallback
         const CACHED_DATA = {
+            '2026-2': {
+                revenue: { plan: 0, fact: 0, pct: 0 },
+                payments: { plan: 0, fact: 0, pct: 0 },
+                avg_price: { plan: 0, fact: 0, pct: 0 },
+                cac: { plan: 0, fact: 0, pct: 0 },
+                marketing_budget: { plan: 0, fact: 0, pct: 0 },
+                leads: { plan: 0, fact: 0, pct: 0 },
+                demos_scheduled: { plan: 0, fact: 0, pct: 0 },
+                demos_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_lead_to_demo: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_payment: { plan: 0, fact: 0, pct: 0 },
+                channels: []
+            },
             '2026-1': {
                 revenue: { plan: 158000, fact: 56970, pct: 36.1 },
                 payments: { plan: 5, fact: 3, pct: 60 },
@@ -1852,7 +1868,7 @@
             }
         };
 
-        let currentPeriod = '2026-1';
+        let currentPeriod = '2026-2';
         let dashboardData = {};
         let planFactChart = null;
         let trendChart = null;
