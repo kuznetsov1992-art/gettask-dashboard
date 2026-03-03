@@ -1556,6 +1556,7 @@
                     <span id="dataStatusText">Загрузка...</span>
                 </div>
                 <select class="period-selector" id="periodSelector">
+                    <option value="2026-3">Март 2026</option>
                     <option value="2026-2">Февраль 2026</option>
                     <option value="2026-1">Январь 2026</option>
                     <option value="2025-12">Декабрь 2025</option>
@@ -1705,6 +1706,7 @@
         const SPREADSHEET_ID = '10BPjt5TsaJLpIrLqvyMgEeUsSV4baa4NrGullTsB7AI';
 
         const SHEETS_CONFIG = {
+            '2026-3':  { gid: '1124820082', name: 'Март 2026' },
             '2026-2':  { gid: '1225075948', name: 'Февраль 2026' },
             '2026-1':  { gid: '502114286', name: 'Январь 2026' },
             '2025-12': { gid: '843488400', name: 'Декабрь 2025' },
@@ -1726,6 +1728,22 @@
 
         // Cached data as fallback
         const CACHED_DATA = {
+            '2026-3': {
+                revenue: { plan: 49896, fact: 0, pct: 0 },
+                payments: { plan: 5, fact: 0, pct: 0 },
+                avg_price: { plan: 9900, fact: 0, pct: 0 },
+                cac: { plan: 29762, fact: 0, pct: 0 },
+                marketing_budget: { plan: 150000, fact: 9514, pct: 6.34 },
+                leads: { plan: 140, fact: 22, pct: 15.71 },
+                demos_scheduled: { plan: 56, fact: 4, pct: 7.14 },
+                demos_completed: { plan: 34, fact: 0, pct: 0 },
+                conv_lead_to_demo: { plan: 0.4, fact: 0.18, pct: 45 },
+                conv_demo_to_completed: { plan: 0.6, fact: 0, pct: 0 },
+                conv_demo_to_payment: { plan: 0.15, fact: 0, pct: 0 },
+                channels: [
+                    { name: "lead2call", icon: "📞", budget: 9514, leads: 22, payments: 0 }
+                ]
+            },
             '2026-2': {
                 revenue: { plan: 0, fact: 0, pct: 0 },
                 payments: { plan: 0, fact: 0, pct: 0 },
@@ -1868,7 +1886,7 @@
             }
         };
 
-        let currentPeriod = '2026-2';
+        let currentPeriod = '2026-3';
         let dashboardData = {};
         let planFactChart = null;
         let trendChart = null;
@@ -2963,7 +2981,7 @@
             const colors = getThemeColors();
 
             // Используем упорядоченный список периодов (от старого к новому)
-            const orderedPeriods = ['2025-7', '2025-8', '2025-9', '2025-10', '2025-11', '2025-12', '2026-1'];
+            const orderedPeriods = ['2025-7', '2025-8', '2025-9', '2025-10', '2025-11', '2025-12', '2026-1', '2026-2', '2026-3'];
             const validPeriods = orderedPeriods.filter(p => dashboardData[p]);
 
             const revenueData = validPeriods.map(p => dashboardData[p]?.revenue?.fact || 0);
@@ -3005,7 +3023,7 @@
         }
 
         function getPreviousPeriod(current) {
-            const orderedPeriods = ['2026-1', '2025-12', '2025-11', '2025-10', '2025-9', '2025-8', '2025-7'];
+            const orderedPeriods = ['2026-3', '2026-2', '2026-1', '2025-12', '2025-11', '2025-10', '2025-9', '2025-8', '2025-7'];
             const currentIndex = orderedPeriods.indexOf(current);
             return currentIndex < orderedPeriods.length - 1 ? orderedPeriods[currentIndex + 1] : null;
         }
