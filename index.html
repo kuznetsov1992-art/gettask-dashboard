@@ -1556,6 +1556,7 @@
                     <span id="dataStatusText">Загрузка...</span>
                 </div>
                 <select class="period-selector" id="periodSelector">
+                    <option value="2026-4">Апрель 2026</option>
                     <option value="2026-3">Март 2026</option>
                     <option value="2026-2">Февраль 2026</option>
                     <option value="2026-1">Январь 2026</option>
@@ -1565,6 +1566,7 @@
                     <option value="2025-9">Сентябрь 2025</option>
                     <option value="2025-8">Август 2025</option>
                     <option value="2025-7">Июль 2025</option>
+                    <option value="all">За всё время</option>
                 </select>
             </div>
         </header>
@@ -1706,6 +1708,7 @@
         const SPREADSHEET_ID = '10BPjt5TsaJLpIrLqvyMgEeUsSV4baa4NrGullTsB7AI';
 
         const SHEETS_CONFIG = {
+            '2026-4':  { gid: '1656122891', name: 'Апрель 2026' },
             '2026-3':  { gid: '1124820082', name: 'Март 2026' },
             '2026-2':  { gid: '1225075948', name: 'Февраль 2026' },
             '2026-1':  { gid: '502114286', name: 'Январь 2026' },
@@ -1728,6 +1731,20 @@
 
         // Cached data as fallback
         const CACHED_DATA = {
+            '2026-4': {
+                revenue: { plan: 0, fact: 0, pct: 0 },
+                payments: { plan: 0, fact: 0, pct: 0 },
+                avg_price: { plan: 0, fact: 0, pct: 0 },
+                cac: { plan: 0, fact: 0, pct: 0 },
+                marketing_budget: { plan: 0, fact: 0, pct: 0 },
+                leads: { plan: 0, fact: 0, pct: 0 },
+                demos_scheduled: { plan: 0, fact: 0, pct: 0 },
+                demos_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_lead_to_demo: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_payment: { plan: 0, fact: 0, pct: 0 },
+                channels: []
+            },
             '2026-3': {
                 revenue: { plan: 49896, fact: 0, pct: 0 },
                 payments: { plan: 5, fact: 0, pct: 0 },
@@ -1886,7 +1903,7 @@
             }
         };
 
-        let currentPeriod = '2026-3';
+        let currentPeriod = '2026-4';
         let dashboardData = {};
         let planFactChart = null;
         let trendChart = null;
@@ -2322,6 +2339,21 @@
         async function loadPeriodData(periodKey, forceRefresh = false) {
             if (isLoading) return;
 
+            if (periodKey === 'all') {
+                currentPeriod = 'all';
+                showLoading(true, 'Агрегация периода «За всё время»…');
+                try {
+                    await loadAllPeriodsForTrend();
+                    dashboardData['all'] = buildAllTimeData();
+                    updateDataStatus(true, 'агрегировано');
+                    updateDashboard();
+                } catch (e) {
+                    console.error('❌ Ошибка агрегации «За всё время»:', e);
+                }
+                showLoading(false);
+                return;
+            }
+
             showLoading(true);
             currentPeriod = periodKey;
 
@@ -2386,6 +2418,105 @@
 
         function refreshData() {
             loadPeriodData(currentPeriod, true);
+        }
+
+        // ========================================
+        // ALL-TIME AGGREGATION
+        // ========================================
+        function buildAllTimeData() {
+            const agg = {
+                revenue: { plan: 0, fact: 0, pct: 0 },
+                payments: { plan: 0, fact: 0, pct: 0 },
+                avg_price: { plan: 0, fact: 0, pct: 0 },
+                cac: { plan: 0, fact: 0, pct: 0 },
+                marketing_budget: { plan: 0, fact: 0, pct: 0 },
+                leads: { plan: 0, fact: 0, pct: 0 },
+                demos_scheduled: { plan: 0, fact: 0, pct: 0 },
+                demos_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_lead_to_demo: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_completed: { plan: 0, fact: 0, pct: 0 },
+                conv_demo_to_payment: { plan: 0, fact: 0, pct: 0 },
+                channels: []
+            };
+
+            const sumKeys = ['revenue', 'payments', 'marketing_budget', 'leads', 'demos_scheduled', 'demos_completed'];
+            const channelsAgg = {};
+
+            for (const pk of Object.keys(SHEETS_CONFIG)) {
+                const d = dashboardData[pk];
+                if (!d) continue;
+
+                for (const k of sumKeys) {
+                    if (d[k]) {
+                        agg[k].plan += Number(d[k].plan) || 0;
+                        agg[k].fact += Number(d[k].fact) || 0;
+                    }
+                }
+
+                // Каналы — нормализуем по имени
+                (d.channels || []).forEach(ch => {
+                    const key = (ch.name || '').toString().trim().toLowerCase();
+                    if (!key) return;
+                    if (!channelsAgg[key]) {
+                        channelsAgg[key] = {
+                            name: ch.name,
+                            icon: ch.icon || '📊',
+                            budgetPlan: 0, budgetFact: 0,
+                            leadsPlan: 0, leadsFact: 0,
+                            demosScheduledPlan: 0, demosScheduledFact: 0,
+                            demosCompletedPlan: 0, demosCompletedFact: 0,
+                            paymentsPlan: 0, paymentsFact: 0,
+                            impressionsPlan: 0, impressionsFact: 0,
+                            clicksPlan: 0, clicksFact: 0
+                        };
+                    }
+                    const a = channelsAgg[key];
+                    a.budgetPlan        += Number(ch.budgetPlan) || 0;
+                    a.budgetFact        += (Number(ch.budgetFact) || 0) || (Number(ch.budget) || 0);
+                    a.leadsPlan         += Number(ch.leadsPlan) || 0;
+                    a.leadsFact         += (Number(ch.leadsFact) || 0) || (Number(ch.leads) || 0);
+                    a.demosScheduledPlan+= Number(ch.demosScheduledPlan) || 0;
+                    a.demosScheduledFact+= Number(ch.demosScheduledFact) || 0;
+                    a.demosCompletedPlan+= Number(ch.demosCompletedPlan) || 0;
+                    a.demosCompletedFact+= Number(ch.demosCompletedFact) || 0;
+                    a.paymentsPlan      += Number(ch.paymentsPlan) || 0;
+                    a.paymentsFact      += (Number(ch.paymentsFact) || 0) || (Number(ch.payments) || 0);
+                    a.impressionsPlan   += Number(ch.impressionsPlan) || 0;
+                    a.impressionsFact   += Number(ch.impressionsFact) || 0;
+                    a.clicksPlan        += Number(ch.clicksPlan) || 0;
+                    a.clicksFact        += Number(ch.clicksFact) || 0;
+                });
+            }
+
+            // Производные метрики
+            const derive = (numPlan, numFact, denPlan, denFact) => ({
+                plan: denPlan > 0 ? numPlan / denPlan : 0,
+                fact: denFact > 0 ? numFact / denFact : 0
+            });
+
+            const avg = derive(agg.revenue.plan, agg.revenue.fact, agg.payments.plan, agg.payments.fact);
+            agg.avg_price.plan = Math.round(avg.plan);
+            agg.avg_price.fact = Math.round(avg.fact);
+
+            const cac = derive(agg.marketing_budget.plan, agg.marketing_budget.fact, agg.payments.plan, agg.payments.fact);
+            agg.cac.plan = Math.round(cac.plan);
+            agg.cac.fact = Math.round(cac.fact);
+
+            agg.conv_lead_to_demo     = { ...derive(agg.demos_scheduled.plan, agg.demos_scheduled.fact, agg.leads.plan, agg.leads.fact), pct: 0 };
+            agg.conv_demo_to_completed= { ...derive(agg.demos_completed.plan, agg.demos_completed.fact, agg.demos_scheduled.plan, agg.demos_scheduled.fact), pct: 0 };
+            agg.conv_demo_to_payment  = { ...derive(agg.payments.plan, agg.payments.fact, agg.demos_completed.plan, agg.demos_completed.fact), pct: 0 };
+
+            // Проценты выполнения
+            const setPct = (m) => { m.pct = m.plan > 0 ? Math.round(m.fact / m.plan * 100) : 0; };
+            ['revenue','payments','avg_price','cac','marketing_budget','leads','demos_scheduled','demos_completed','conv_lead_to_demo','conv_demo_to_completed','conv_demo_to_payment'].forEach(k => setPct(agg[k]));
+
+            agg.channels = Object.values(channelsAgg).filter(ch =>
+                ch.budgetFact > 0 || ch.budgetPlan > 0 ||
+                ch.leadsFact > 0 || ch.leadsPlan > 0 ||
+                ch.paymentsFact > 0 || ch.paymentsPlan > 0
+            );
+
+            return agg;
         }
 
         // ========================================
@@ -2981,7 +3112,7 @@
             const colors = getThemeColors();
 
             // Используем упорядоченный список периодов (от старого к новому)
-            const orderedPeriods = ['2025-7', '2025-8', '2025-9', '2025-10', '2025-11', '2025-12', '2026-1', '2026-2', '2026-3'];
+            const orderedPeriods = ['2025-7', '2025-8', '2025-9', '2025-10', '2025-11', '2025-12', '2026-1', '2026-2', '2026-3', '2026-4'];
             const validPeriods = orderedPeriods.filter(p => dashboardData[p]);
 
             const revenueData = validPeriods.map(p => dashboardData[p]?.revenue?.fact || 0);
@@ -3023,12 +3154,14 @@
         }
 
         function getPreviousPeriod(current) {
-            const orderedPeriods = ['2026-3', '2026-2', '2026-1', '2025-12', '2025-11', '2025-10', '2025-9', '2025-8', '2025-7'];
+            if (current === 'all') return null;
+            const orderedPeriods = ['2026-4', '2026-3', '2026-2', '2026-1', '2025-12', '2025-11', '2025-10', '2025-9', '2025-8', '2025-7'];
             const currentIndex = orderedPeriods.indexOf(current);
             return currentIndex < orderedPeriods.length - 1 ? orderedPeriods[currentIndex + 1] : null;
         }
 
         function getPeriodLabel(periodKey) {
+            if (periodKey === 'all') return 'За всё время';
             const config = SHEETS_CONFIG[periodKey];
             if (config) return config.name;
             // Fallback
